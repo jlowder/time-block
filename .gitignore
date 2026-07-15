@@ -1,0 +1,21 @@
+# macOS system files
+.DS_Store
+
+# IDE / Editor files
+.juggler/
+.idea/
+*.swp
+*.swo
+*~
+
+# Exported / generated schedule files
+# These are runtime exports or backups, not part of the source
+active-schedule.json
+daily-schedule.json
+
+# AI service configuration (contains API key - use .llm-config.json.example as template)
+.llm-config.json
+
+# Imported schedule files (user uploads)
+*-import.json
+*-import.txt
