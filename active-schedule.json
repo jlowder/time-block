@@ -1,0 +1,226 @@
+{
+  "slots": [
+    {
+      "id": "slot-1",
+      "startH": 8,
+      "startM": 0,
+      "endH": 9,
+      "endM": 0,
+      "title": "Puzzles & Newsletters",
+      "icon": "🧩",
+      "theme": "leisure",
+      "desc": "Solve brain teasers and catch up on curated newsletters.",
+      "badge": "1h",
+      "badgeClass": "badge-special"
+    },
+    {
+      "id": "slot-3",
+      "startH": 9,
+      "startM": 0,
+      "endH": 9,
+      "endM": 15,
+      "title": "CourseBox - React and JSX",
+      "icon": "⚛️",
+      "theme": "study",
+      "desc": "Learn React fundamentals and JSX syntax through interactive lessons.",
+      "badge": "15min",
+      "badgeClass": "badge-study"
+    },
+    {
+      "id": "slot-2",
+      "startH": 9,
+      "startM": 15,
+      "endH": 9,
+      "endM": 20,
+      "title": "Break",
+      "icon": "🌅",
+      "theme": "break",
+      "desc": "Step outside for fresh air and a brief mental break.",
+      "badge": "5min",
+      "badgeClass": "badge-break"
+    },
+    {
+      "id": "slot-1782138736595-jwtb3p6v1",
+      "startH": 9,
+      "startM": 20,
+      "endH": 9,
+      "endM": 40,
+      "title": "LLMs From Scratch",
+      "desc": "Build and understand large language models from the ground up.",
+      "icon": "🤖",
+      "theme": "study",
+      "badge": "20min",
+      "badgeClass": "badge-study"
+    },
+    {
+      "id": "slot-4",
+      "startH": 9,
+      "startM": 40,
+      "endH": 9,
+      "endM": 45,
+      "title": "Break",
+      "icon": "🌅",
+      "theme": "break",
+      "desc": "Step outside for fresh air and a brief mental break.",
+      "badge": "5min",
+      "badgeClass": "badge-break"
+    },
+    {
+      "id": "slot-5",
+      "startH": 9,
+      "startM": 45,
+      "endH": 10,
+      "endM": 5,
+      "title": "Quantum Programming",
+      "icon": "🔮",
+      "theme": "study",
+      "desc": "Explore quantum computing concepts and write your first quantum algorithms.",
+      "badge": "20min",
+      "badgeClass": "badge-study"
+    },
+    {
+      "id": "slot-6",
+      "startH": 10,
+      "startM": 5,
+      "endH": 10,
+      "endM": 10,
+      "title": "Break",
+      "icon": "🌅",
+      "theme": "break",
+      "desc": "Step outside for fresh air and a brief mental break.",
+      "badge": "5min",
+      "badgeClass": "badge-break"
+    },
+    {
+      "id": "slot-7",
+      "startH": 10,
+      "startM": 10,
+      "endH": 10,
+      "endM": 20,
+      "title": "Stretching Session 1",
+      "icon": "🧘",
+      "theme": "exercise",
+      "desc": "Perform gentle stretches to loosen up your muscles.",
+      "badge": "10min",
+      "badgeClass": "badge-exercise"
+    },
+    {
+      "id": "slot-8",
+      "startH": 10,
+      "startM": 20,
+      "endH": 10,
+      "endM": 25,
+      "title": "Break",
+      "icon": "🌅",
+      "theme": "break",
+      "desc": "Step outside for fresh air and a brief mental break.",
+      "badge": "5min",
+      "badgeClass": "badge-break"
+    },
+    {
+      "id": "slot-9",
+      "startH": 10,
+      "startM": 25,
+      "endH": 10,
+      "endM": 55,
+      "title": "Open Notebook - process Distillation Papers",
+      "icon": "📓",
+      "theme": "study",
+      "desc": "Review and summarize key insights from recent distillation research papers.",
+      "badge": "30min",
+      "badgeClass": "badge-study"
+    },
+    {
+      "id": "slot-10",
+      "startH": 10,
+      "startM": 55,
+      "endH": 11,
+      "endM": 0,
+      "title": "Break",
+      "icon": "🌅",
+      "theme": "break",
+      "desc": "Step outside for fresh air and a brief mental break.",
+      "badge": "5min",
+      "badgeClass": "badge-break"
+    },
+    {
+      "id": "slot-13",
+      "startH": 11,
+      "startM": 0,
+      "endH": 11,
+      "endM": 20,
+      "title": "Study Python Continuations",
+      "icon": "🐍",
+      "theme": "study",
+      "desc": "Dive deeper into Python control flow and continuation patterns.",
+      "badge": "20min",
+      "badgeClass": "badge-study"
+    },
+    {
+      "id": "slot-12",
+      "startH": 11,
+      "startM": 20,
+      "endH": 11,
+      "endM": 25,
+      "title": "Break",
+      "icon": "🌅",
+      "theme": "break",
+      "desc": "Step outside for fresh air and a brief mental break.",
+      "badge": "5min",
+      "badgeClass": "badge-break"
+    },
+    {
+      "id": "slot-11",
+      "startH": 11,
+      "startM": 25,
+      "endH": 11,
+      "endM": 40,
+      "title": "Stretching Session 2",
+      "icon": "🤸",
+      "theme": "exercise",
+      "desc": "Complete a second round of targeted stretches to improve flexibility.",
+      "badge": "15min",
+      "badgeClass": "badge-exercise"
+    },
+    {
+      "id": "slot-14",
+      "startH": 11,
+      "startM": 40,
+      "endH": 11,
+      "endM": 45,
+      "title": "Break",
+      "icon": "🌅",
+      "theme": "break",
+      "desc": "Step outside for fresh air and a brief mental break.",
+      "badge": "5min",
+      "badgeClass": "badge-break"
+    },
+    {
+      "id": "slot-15",
+      "startH": 11,
+      "startM": 45,
+      "endH": 12,
+      "endM": 5,
+      "title": "Study Python Report",
+      "icon": "📝",
+      "theme": "study",
+      "desc": "Write a concise report summarizing your Python learning progress.",
+      "badge": "20min",
+      "badgeClass": "badge-study"
+    }
+  ],
+  "dividers": [
+    {
+      "index": 0,
+      "label": "Morning Warm-up"
+    },
+    {
+      "index": 2,
+      "label": "Study Block 1"
+    },
+    {
+      "index": 14,
+      "label": "Wind Down"
+    }
+  ]
+}

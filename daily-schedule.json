@@ -1,0 +1,226 @@
+{
+  "slots": [
+    {
+      "id": "slot-1",
+      "startH": 8,
+      "startM": 0,
+      "endH": 9,
+      "endM": 0,
+      "title": "Puzzles & Newsletters",
+      "icon": "🧩",
+      "theme": "leisure",
+      "desc": "Solve daily puzzles and catch up on interesting newsletters.",
+      "badge": "1h",
+      "badgeClass": "badge-special"
+    },
+    {
+      "id": "slot-3",
+      "startH": 9,
+      "startM": 0,
+      "endH": 9,
+      "endM": 15,
+      "title": "The Master Algorithm",
+      "icon": "📘",
+      "theme": "study",
+      "desc": "Dive into advanced algorithmic concepts and problem-solving strategies.",
+      "badge": "15min",
+      "badgeClass": "badge-study"
+    },
+    {
+      "id": "slot-2",
+      "startH": 9,
+      "startM": 15,
+      "endH": 9,
+      "endM": 20,
+      "title": "Break",
+      "icon": "💤",
+      "theme": "break",
+      "desc": "Close your eyes for a brief power nap or quiet breathing exercise.",
+      "badge": "5min",
+      "badgeClass": "badge-break"
+    },
+    {
+      "id": "slot-1782138736595-jwtb3p6v1",
+      "startH": 9,
+      "startM": 20,
+      "endH": 9,
+      "endM": 40,
+      "title": "LLMs From Scratch",
+      "desc": "Learn the fundamentals of building large language models from the ground up.",
+      "icon": "🤖",
+      "theme": "study",
+      "badge": "20min",
+      "badgeClass": "badge-study"
+    },
+    {
+      "id": "slot-4",
+      "startH": 9,
+      "startM": 40,
+      "endH": 9,
+      "endM": 45,
+      "title": "Break",
+      "icon": "💤",
+      "theme": "break",
+      "desc": "Close your eyes for a brief power nap or quiet breathing exercise.",
+      "badge": "5min",
+      "badgeClass": "badge-break"
+    },
+    {
+      "id": "slot-5",
+      "startH": 9,
+      "startM": 45,
+      "endH": 10,
+      "endM": 5,
+      "title": "Quantum Programming",
+      "icon": "⚛️",
+      "theme": "study",
+      "desc": "Explore the basics of quantum computing and write your first quantum programs.",
+      "badge": "20min",
+      "badgeClass": "badge-study"
+    },
+    {
+      "id": "slot-6",
+      "startH": 10,
+      "startM": 5,
+      "endH": 10,
+      "endM": 10,
+      "title": "Break",
+      "icon": "💤",
+      "theme": "break",
+      "desc": "Close your eyes for a brief power nap or quiet breathing exercise.",
+      "badge": "5min",
+      "badgeClass": "badge-break"
+    },
+    {
+      "id": "slot-7",
+      "startH": 10,
+      "startM": 10,
+      "endH": 10,
+      "endM": 20,
+      "title": "Stretching Session 1",
+      "icon": "🧘",
+      "theme": "exercise",
+      "desc": "Perform gentle stretches to improve flexibility and relieve tension.",
+      "badge": "10min",
+      "badgeClass": "badge-exercise"
+    },
+    {
+      "id": "slot-8",
+      "startH": 10,
+      "startM": 20,
+      "endH": 10,
+      "endM": 25,
+      "title": "Break",
+      "icon": "💤",
+      "theme": "break",
+      "desc": "Close your eyes for a brief power nap or quiet breathing exercise.",
+      "badge": "5min",
+      "badgeClass": "badge-break"
+    },
+    {
+      "id": "slot-9",
+      "startH": 10,
+      "startM": 25,
+      "endH": 10,
+      "endM": 55,
+      "title": "Julia Turc Video",
+      "icon": "🎥",
+      "theme": "special",
+      "desc": "Watch an insightful video presentation by Julia Turc.",
+      "badge": "30min",
+      "badgeClass": "badge-study"
+    },
+    {
+      "id": "slot-10",
+      "startH": 10,
+      "startM": 55,
+      "endH": 11,
+      "endM": 0,
+      "title": "Break",
+      "icon": "💤",
+      "theme": "break",
+      "desc": "Close your eyes for a brief power nap or quiet breathing exercise.",
+      "badge": "5min",
+      "badgeClass": "badge-break"
+    },
+    {
+      "id": "slot-13",
+      "startH": 11,
+      "startM": 0,
+      "endH": 11,
+      "endM": 15,
+      "title": "AI Engineering",
+      "icon": "⚙️",
+      "theme": "study",
+      "desc": "Study practical techniques for designing and deploying AI systems.",
+      "badge": "15min",
+      "badgeClass": "badge-study"
+    },
+    {
+      "id": "slot-12",
+      "startH": 11,
+      "startM": 15,
+      "endH": 11,
+      "endM": 20,
+      "title": "Break",
+      "icon": "💤",
+      "theme": "break",
+      "desc": "Close your eyes for a brief power nap or quiet breathing exercise.",
+      "badge": "5min",
+      "badgeClass": "badge-break"
+    },
+    {
+      "id": "slot-11",
+      "startH": 11,
+      "startM": 20,
+      "endH": 11,
+      "endM": 35,
+      "title": "Stretching Session 2",
+      "icon": "🤸",
+      "theme": "exercise",
+      "desc": "Complete a second round of targeted stretches to ease muscle stiffness.",
+      "badge": "15min",
+      "badgeClass": "badge-exercise"
+    },
+    {
+      "id": "slot-14",
+      "startH": 11,
+      "startM": 35,
+      "endH": 11,
+      "endM": 40,
+      "title": "Break",
+      "icon": "💤",
+      "theme": "break",
+      "desc": "Close your eyes for a brief power nap or quiet breathing exercise.",
+      "badge": "5min",
+      "badgeClass": "badge-break"
+    },
+    {
+      "id": "slot-15",
+      "startH": 11,
+      "startM": 40,
+      "endH": 12,
+      "endM": 10,
+      "title": "Python Learning",
+      "icon": "🐍",
+      "theme": "study",
+      "desc": "Practice Python programming fundamentals through hands-on exercises.",
+      "badge": "30min",
+      "badgeClass": "badge-study"
+    }
+  ],
+  "dividers": [
+    {
+      "index": 0,
+      "label": "Morning Warm-up"
+    },
+    {
+      "index": 2,
+      "label": "Study Block 1"
+    },
+    {
+      "index": 14,
+      "label": "Wind Down"
+    }
+  ]
+}
