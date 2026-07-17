@@ -135,7 +135,7 @@
     .schedule-container {
       max-width: 800px;
       margin: 0 auto;
-      padding-bottom: 100px;
+      padding-bottom: 380px; /* Space for chat panel (300px) + footer (~80px) */
     }
 
     /* Time Block Cards */
@@ -478,7 +478,7 @@
     /* Notifications */
     .notifications {
       position: fixed;
-      bottom: 80px;
+      bottom: 100px; /* Above the footer */
       left: 50%;
       transform: translateX(-50%);
       display: flex;
@@ -560,6 +560,170 @@
       justify-content: flex-end;
     }
 
+    /* AI Chat Panel */
+    .ai-chat-container {
+      position: relative;
+      margin: 0 auto 24px;
+      width: 100%;
+      max-width: 800px;
+      background: rgba(79, 195, 247, 0.08);
+      border: 1px solid rgba(79, 195, 247, 0.3);
+      border-radius: var(--border-radius);
+      display: flex;
+      flex-direction: column;
+      max-height: 400px;
+    }
+
+    .ai-chat-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ai-chat-title {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text-primary);
+    }
+
+    .ai-chat-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-left: auto;
+    }
+
+    .ai-chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 250px;
+    }
+
+    .ai-chat-message {
+      max-width: 85%;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      line-height: 1.4;
+      word-wrap: break-word;
+    }
+
+    .ai-chat-message.user {
+      align-self: flex-end;
+      background: var(--theme-break);
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+
+    .ai-chat-message.ai {
+      align-self: flex-start;
+      background: rgba(255, 255, 255, 0.1);
+      border-bottom-left-radius: 4px;
+      color: var(--text-primary);
+    }
+
+    .ai-chat-message.thinking {
+      align-self: flex-start;
+      font-style: italic;
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      padding: 8px 12px;
+    }
+
+    .ai-chat-message.system {
+      align-self: center;
+      background: rgba(247, 151, 30, 0.2);
+      color: var(--theme-study-light);
+      font-size: 0.85rem;
+      text-align: center;
+      width: 100%;
+    }
+
+    .ai-chat-input-area {
+      display: flex;
+      gap: 8px;
+      padding: 12px 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .ai-chat-input-area input {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      padding: 10px 16px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 0.9rem;
+    }
+
+    .ai-chat-input-area input:focus {
+      outline: none;
+      border-color: var(--theme-break);
+      background: rgba(0, 0, 0, 0.4);
+    }
+
+    .ai-chat-input-area input::placeholder {
+      color: var(--text-secondary);
+    }
+
+    .ai-chat-input-area input:disabled {
+      opacity: 0.5;
+      cursor: wait;
+    }
+
+    .ai-chat-input-area button {
+      background: var(--theme-break);
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      cursor: pointer;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+    }
+
+    .ai-chat-input-area button:hover {
+      background: #29b6f6;
+      transform: scale(1.05);
+    }
+
+    .ai-chat-input-area button:disabled {
+      opacity: 0.5;
+      cursor: wait;
+    }
+
+    .ai-chat-input-area button svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* Scrollbar styling for chat messages */
+    .ai-chat-messages::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .ai-chat-messages::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .ai-chat-messages::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 3px;
+    }
+
+    .ai-chat-messages::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
     /* Responsive */
     @media (max-width: 500px) {
       .time-block-editing .edit-form {
@@ -578,6 +742,25 @@
       .live-status-bar { flex-direction: column; gap: 12px; }
       .footer-controls { flex-direction: column; gap: 16px; }
       .footer-stats { flex-wrap: wrap; justify-content: center; }
+      
+      /* AI Chat responsive */
+      .ai-chat-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .ai-chat-subtitle {
+        margin-left: 0;
+        font-size: 0.75rem;
+      }
+      
+      .ai-chat-message {
+        max-width: 95%;
+      }
+      
+      .schedule-container {
+        padding-bottom: 420px; /* More space on mobile for stacked footer + chat */
+      }
     }
   </style>
 </head>
@@ -597,6 +780,32 @@
 
   <div class="schedule-container" id="scheduleContainer">
     <!-- Schedule slots and dividers will be rendered here -->
+  </div>
+
+  <!-- AI Chat Panel (appears in edit mode) -->
+  <div class="ai-chat-container" id="aiChatContainer" style="display: none;">
+    <div class="ai-chat-header">
+      <span class="ai-chat-title">🤖 AI Assistant</span>
+      <span class="ai-chat-subtitle">Describe changes naturally</span>
+    </div>
+    
+    <div class="ai-chat-messages" id="aiChatMessages">
+      <!-- Chat messages rendered here -->
+    </div>
+    
+    <div class="ai-chat-input-area">
+      <input 
+        type="text" 
+        id="aiChatInput" 
+        placeholder="e.g., 'Add a 15-minute break after Exercise'..."
+        autocomplete="off"
+      >
+      <button id="aiChatSendBtn" title="Send message">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+          <path d="M2 21L21 12 2 3v6l10.5 3-10.5 3z"/>
+        </svg>
+      </button>
+    </div>
   </div>
 
   <!-- Notifications -->
@@ -695,6 +904,11 @@
     let lastActiveSlot = -1;
     let soundEnabled = true;
     let audioCtx = null;
+    
+    // AI Chat state
+    let chatHistory = []; // Array of {role: 'user'|'ai'|'system', content: string, timestamp}
+    let isProcessingChat = false;
+    let chatThinkingId = null; // ID of current thinking message
 
     // DOM elements
     const scheduleContainer = document.getElementById('scheduleContainer');
@@ -710,6 +924,12 @@
     const importExportBtn = document.getElementById('importExportBtn');
     const importExportModal = document.getElementById('importExportModal');
     const importInput = document.getElementById('importInput');
+    
+    // AI Chat DOM elements
+    const aiChatContainer = document.getElementById('aiChatContainer');
+    const aiChatMessages = document.getElementById('aiChatMessages');
+    const aiChatInput = document.getElementById('aiChatInput');
+    const aiChatSendBtn = document.getElementById('aiChatSendBtn');
 
     // Initialization
     function init() {
@@ -718,6 +938,7 @@
       updateTotalDuration();
       renderSchedule();
       startLiveUpdates();
+      loadChatHistory();
 
       // Play chimes on first user interaction
       document.addEventListener('click', initializeAudio, { once: true });
@@ -1562,6 +1783,17 @@
       isEditMode = !isEditMode;
       editModeToggle.classList.toggle('on', isEditMode);
 
+      // Show/hide AI chat panel with edit mode
+      const aiChatContainer = document.getElementById('aiChatContainer');
+      if (isEditMode) {
+        aiChatContainer.style.display = 'flex';
+        if (chatHistory.length === 0) {
+          addWelcomeMessage();
+        }
+      } else {
+        aiChatContainer.style.display = 'none';
+      }
+
       if (!isEditMode && wasEditing) {
         // Regenerate fields with AI when exiting edit mode
         await regenerateFieldsWithAI();
@@ -1598,6 +1830,523 @@
       }
 
       totalDurationEl.textContent = durationText;
+    }
+
+    // ==================== AI Chat Functions ====================
+
+    // Add welcome message
+    function addWelcomeMessage() {
+      const welcomeText = `Welcome! I can help you manage your schedule. Try saying:\n• "Add a 15-minute break after Exercise"\n• "Make all breaks 10 minutes"\n• "Move Planning to after Lunch"`;
+      addChatMessage('ai', welcomeText);
+    }
+
+    // Add a chat message
+    function addChatMessage(role, content) {
+      const message = {
+        role,
+        content,
+        timestamp: Date.now()
+      };
+      chatHistory.push(message);
+      renderChatMessage(message);
+      scrollChatToBottom();
+      saveChatHistory();
+    }
+
+    // Render a single chat message
+    function renderChatMessage(message) {
+      const messageEl = document.createElement('div');
+      messageEl.className = `ai-chat-message ${message.role}`;
+      messageEl.innerHTML = message.content.replace(/\n/g, '<br>');
+      aiChatMessages.appendChild(messageEl);
+    }
+
+    // Scroll chat to bottom
+    function scrollChatToBottom() {
+      aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+    }
+
+    // Show thinking indicator
+    function showThinkingIndicator() {
+      const thinkingEl = document.createElement('div');
+      thinkingEl.className = 'ai-chat-message thinking';
+      thinkingEl.id = 'aiChatThinking';
+      thinkingEl.textContent = 'Thinking...';
+      aiChatMessages.appendChild(thinkingEl);
+      chatThinkingId = 'aiChatThinking';
+      scrollChatToBottom();
+    }
+
+    // Hide thinking indicator
+    function hideThinkingIndicator() {
+      const thinkingEl = document.getElementById('aiChatThinking');
+      if (thinkingEl) {
+        thinkingEl.remove();
+        chatThinkingId = null;
+      }
+    }
+
+    // Save chat history to localStorage
+    function saveChatHistory() {
+      if (chatHistory.length > 50) {
+        chatHistory = chatHistory.slice(-50);
+      }
+      localStorage.setItem('aiChatHistory', JSON.stringify(chatHistory));
+    }
+
+    // Load chat history from localStorage
+    function loadChatHistory() {
+      try {
+        const stored = localStorage.getItem('aiChatHistory');
+        if (stored) {
+          chatHistory = JSON.parse(stored);
+          chatHistory.forEach(msg => renderChatMessage(msg));
+          scrollChatToBottom();
+        }
+      } catch (e) {
+        console.warn('Error loading chat history:', e);
+      }
+    }
+
+    // Handle chat submit
+    async function handleChatSubmit() {
+      const input = aiChatInput.value.trim();
+      if (!input || isProcessingChat) return;
+      
+      isProcessingChat = true;
+      aiChatInput.disabled = true;
+      
+      // Add user message
+      addChatMessage('user', input);
+      aiChatInput.value = '';
+      
+      // Show thinking indicator
+      showThinkingIndicator();
+      
+      try {
+        // Parse command with AI
+        const action = await llmService.interpretChatCommand(input, scheduleSlots);
+        
+        // Hide thinking, show AI confirmation
+        hideThinkingIndicator();
+        addChatMessage('ai', action.confirmation);
+        
+        // Execute the action
+        const result = executeScheduleAction(action);
+        
+        // Update UI
+        renderSchedule();
+        saveToStorage();
+        updateTotalDuration();
+        updateTaskCount();
+        
+        // Show action result
+        if (result.success) {
+          addChatMessage('system', `✓ ${result.message}`);
+        } else {
+          addChatMessage('ai', `❌ ${result.message}`);
+        }
+        
+      } catch (error) {
+        hideThinkingIndicator();
+        addChatMessage('ai', `Sorry, I couldn't understand that. ${error.message}`);
+      }
+      
+      isProcessingChat = false;
+      aiChatInput.disabled = false;
+      aiChatInput.focus();
+    }
+
+    // AI Chat event handlers
+    aiChatSendBtn.addEventListener('click', handleChatSubmit);
+    aiChatInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') handleChatSubmit();
+    });
+
+    // ==================== Reference Resolution ====================
+
+    // Parse a reference string into structured form
+    // Reference formats: "after:Exercise", "before:Lunch", "first break", "4:30 AM"
+    function parseReference(reference) {
+      // Check for "after:X" or "before:X" format
+      const afterMatch = reference.match(/^after:(.+)$/i);
+      const beforeMatch = reference.match(/^before:(.+)$/i);
+      
+      if (afterMatch) {
+        const target = findTaskByTitle(afterMatch[1]);
+        return { type: 'after', target: target, original: afterMatch[1] };
+      }
+      if (beforeMatch) {
+        const target = findTaskByTitle(beforeMatch[1]);
+        return { type: 'before', target: target, original: beforeMatch[1] };
+      }
+      
+      // Check for time-based reference (e.g., "4:30 AM", "0630")
+      const timeMinutes = parseTimeToMinutes(reference);
+      if (timeMinutes !== null) {
+        return { type: 'time', minutes: timeMinutes };
+      }
+      
+      // Fuzzy match on title
+      const target = findTaskByTitle(reference);
+      return { type: 'exact', target: target, original: reference };
+    }
+
+    // Find a task by title (exact or fuzzy match)
+    function findTaskByTitle(title) {
+      if (!title) return null;
+      
+      // Exact match first
+      const exactMatch = scheduleSlots.find(slot => slot.title.toLowerCase() === title.toLowerCase());
+      if (exactMatch) return exactMatch;
+      
+      // Fuzzy match (contains)
+      const fuzzyMatch = scheduleSlots.find(slot => slot.title.toLowerCase().includes(title.toLowerCase()));
+      if (fuzzyMatch) return fuzzyMatch;
+      
+      // Check for ordinal references like "first break", "second study session"
+      return findTaskByOrdinal(title);
+    }
+
+    // Find task by ordinal reference (e.g., "first break", "second study session")
+    function findTaskByOrdinal(title) {
+      const titleLower = title.toLowerCase();
+      
+      // Extract ordinal
+      const firstMatch = titleLower.startsWith('first ');
+      const secondMatch = titleLower.startsWith('second ');
+      const thirdMatch = titleLower.startsWith('third ');
+      
+      let ordinalNum = 0;
+      let searchTitle = titleLower;
+      
+      if (firstMatch) { ordinalNum = 1; searchTitle = titleLower.slice(6); }
+      else if (secondMatch) { ordinalNum = 2; searchTitle = titleLower.slice(7); }
+      else if (thirdMatch) { ordinalNum = 3; searchTitle = titleLower.slice(6); }
+      
+      if (ordinalNum === 0) return null;
+      
+      // Find matching tasks by theme or title
+      const matches = scheduleSlots.filter(slot => {
+        if (searchTitle.includes('break')) return slot.theme === 'break';
+        if (searchTitle.includes('study') || searchTitle.includes('work')) return slot.theme === 'study';
+        if (searchTitle.includes('exercise')) return slot.theme === 'exercise';
+        if (searchTitle.includes('leisure')) return slot.theme === 'leisure';
+        if (searchTitle.includes('special')) return slot.theme === 'special';
+        return slot.title.toLowerCase().includes(searchTitle);
+      });
+      
+      return ordinalNum <= matches.length ? matches[ordinalNum - 1] : null;
+    }
+
+    // Parse time string to minutes since midnight
+    function parseTimeToMinutes(timeStr) {
+      // Try formats: "4:30 AM", "4:30", "0430", "430"
+      const amPmMatch = timeStr.match(/(\d+):(\d+)[\s]*([AaPp][Mm])/);
+      if (amPmMatch) {
+        let h = parseInt(amPmMatch[1]);
+        const m = parseInt(amPmMatch[2]);
+        const amPm = amPmMatch[3].toUpperCase();
+        
+        if (amPm === 'PM' && h !== 12) h += 12;
+        if (amPm === 'AM' && h === 12) h = 0;
+        
+        return h * 60 + m;
+      }
+      
+      const simpleMatch = timeStr.match(/(\d+):?(\d*)/);
+      if (simpleMatch) {
+        let h = parseInt(simpleMatch[1]);
+        const m = simpleMatch[2] ? parseInt(simpleMatch[2]) : 0;
+        return h * 60 + m;
+      }
+      
+      return null;
+    }
+
+    // Calculate insert index based on reference
+    function calculateInsertIndex(reference) {
+      if (reference.type === 'after' && reference.target) {
+        const targetIndex = scheduleSlots.indexOf(reference.target);
+        return targetIndex >= 0 ? targetIndex + 1 : scheduleSlots.length;
+      }
+      if (reference.type === 'before' && reference.target) {
+        const targetIndex = scheduleSlots.indexOf(reference.target);
+        return targetIndex >= 0 ? targetIndex : scheduleSlots.length;
+      }
+      if (reference.type === 'time') {
+        // Find the first task that starts at or after the given time
+        for (let i = 0; i < scheduleSlots.length; i++) {
+          const slot = scheduleSlots[i];
+          const slotMinutes = slot.startH * 60 + slot.startM;
+          if (slotMinutes >= reference.minutes) {
+            return i;
+          }
+        }
+        return scheduleSlots.length;
+      }
+      if (reference.type === 'exact' && reference.target) {
+        const targetIndex = scheduleSlots.indexOf(reference.target);
+        return targetIndex >= 0 ? targetIndex + 1 : scheduleSlots.length;
+      }
+      
+      // Default: append to end
+      return scheduleSlots.length;
+    }
+
+    // ==================== Duration Parsing ====================
+
+    // Parse duration string to minutes
+    // Supports: "15 minutes", "15 min", "1 hour", "1h", "1 hour 30 min", "quarter hour"
+    function parseDuration(durationStr) {
+      if (!durationStr) return 15; // default
+      
+      durationStr = durationStr.toLowerCase().trim();
+      
+      // Quarter hour
+      if (durationStr.includes('quarter')) return 15;
+      
+      let totalMinutes = 0;
+      
+      // Extract hours
+      const hoursMatch = durationStr.match(/(\d+)\s*(?:hour|h)/);
+      if (hoursMatch) {
+        totalMinutes += parseInt(hoursMatch[1]) * 60;
+      }
+      
+      // Extract minutes
+      const minutesMatch = durationStr.match(/(\d+)\s*(?:minute|min)/);
+      if (minutesMatch) {
+        totalMinutes += parseInt(minutesMatch[1]);
+      }
+      
+      // If only a number (e.g., "15")
+      if (totalMinutes === 0) {
+        const numMatch = durationStr.match(/(\d+)/);
+        if (numMatch) {
+          return parseInt(numMatch[1]);
+        }
+      }
+      
+      return totalMinutes > 0 ? totalMinutes : 15;
+    }
+
+    // ==================== Theme Auto-Detection ====================
+
+    // Auto-detect theme from title
+    function autoDetectTheme(title) {
+      const titleLower = title.toLowerCase();
+      
+      if (/break|rest|snack|lunch|coffee|tea|recharge/i.test(titleLower)) return 'break';
+      if (/exercise|workout|run|walk|stretch|yoga|gym|fitness/i.test(titleLower)) return 'exercise';
+      if (/study|work|read|learn|code|project|focus|deep/i.test(titleLower)) return 'study';
+      if (/hobby|creative|relax|leisure|fun|play/i.test(titleLower)) return 'leisure';
+      if (/meeting|call|collaborat|special|event/i.test(titleLower)) return 'special';
+      
+      return 'study'; // default
+    }
+
+    // ==================== Action Execution ====================
+
+    // Create a new slot object
+    function createSlot({ title, duration, description, theme }) {
+      // Find available start time (append to end for now, will be recalculated)
+      const lastSlot = scheduleSlots[scheduleSlots.length - 1];
+      let startH, startM;
+      
+      if (lastSlot) {
+        startH = lastSlot.endH;
+        startM = lastSlot.endM;
+      } else {
+        startH = 4; startM = 0; // Default to 4 AM
+      }
+      
+      const startMinutes = startH * 60 + startM;
+      const endMinutes = startMinutes + duration;
+      
+      return {
+        id: 'slot-' + Date.now() + Math.random().toString(36).substr(2, 9),
+        startH: Math.floor(startMinutes / 60) % 24,
+        startM: startMinutes % 60,
+        endH: Math.floor(endMinutes / 60) % 24,
+        endM: endMinutes % 60,
+        title: title || 'Untitled',
+        desc: description || '',
+        icon: '⭐',
+        theme: theme || 'study',
+        badge: '',
+        badgeClass: 'badge-' + (theme || 'study')
+      };
+    }
+
+    // Execute a schedule action based on parsed command
+    function executeScheduleAction(action) {
+      switch (action.action) {
+        case 'INSERT':
+          return executeInsert(action);
+        case 'DELETE':
+          return executeDelete(action);
+        case 'MODIFY_DURATION':
+          return executeModifyDuration(action);
+        case 'MOVE':
+          return executeMove(action);
+        case 'SET_THEME':
+          return executeSetTheme(action);
+        case 'BULK_UPDATE':
+          return executeBulkUpdate(action);
+        default:
+          return { success: false, message: 'Unknown action type' };
+      }
+    }
+
+    // Execute INSERT action
+    function executeInsert(action) {
+      const { title, duration, description, theme } = action.params;
+      const reference = parseReference(action.target);
+      
+      const newSlot = createSlot({
+        title,
+        duration: duration || 15,
+        description,
+        theme: theme || autoDetectTheme(title)
+      });
+      
+      const insertIndex = calculateInsertIndex(reference);
+      scheduleSlots.splice(insertIndex, 0, newSlot);
+      
+      recalculateTimes();
+      recalculateBadge(newSlot);
+      
+      return {
+        success: true,
+        message: `Added "${title}" (${duration || 15} min) to your schedule`
+      };
+    }
+
+    // Execute DELETE action
+    function executeDelete(action) {
+      const target = findTaskByTitle(action.target);
+      
+      if (!target) {
+        return { success: false, message: `Could not find task "${action.target}"` };
+      }
+      
+      const index = scheduleSlots.indexOf(target);
+      if (index === -1) {
+        return { success: false, message: 'Task not found' };
+      }
+      
+      scheduleSlots.splice(index, 1);
+      recalculateTimes();
+      
+      return {
+        success: true,
+        message: `Removed "${target.title}" from your schedule`
+      };
+    }
+
+    // Execute MODIFY_DURATION action
+    function executeModifyDuration(action) {
+      const target = findTaskByTitle(action.target);
+      
+      if (!target) {
+        return { success: false, message: `Could not find task "${action.target}"` };
+      }
+      
+      const oldDuration = (target.endH * 60 + target.endM) - (target.startH * 60 + target.startM);
+      const newDuration = parseDuration(action.params.duration);
+      const durationChange = newDuration - oldDuration;
+      
+      // Update the target task's end time
+      const currentEndMinutes = target.endH * 60 + target.endM;
+      const newEndMinutes = currentEndMinutes + durationChange;
+      
+      target.endH = Math.floor(newEndMinutes / 60) % 24;
+      target.endM = newEndMinutes % 60;
+      
+      recalculateTimes();
+      recalculateBadge(target);
+      
+      return {
+        success: true,
+        message: `Updated "${target.title}" duration to ${newDuration} min`
+      };
+    }
+
+    // Execute MOVE action
+    function executeMove(action) {
+      const target = findTaskByTitle(action.target);
+      
+      if (!target) {
+        return { success: false, message: `Could not find task "${action.target}"` };
+      }
+      
+      const oldIndex = scheduleSlots.indexOf(target);
+      const reference = parseReference(action.params.to);
+      const newIndex = calculateInsertIndex(reference);
+      
+      // Remove from old position
+      scheduleSlots.splice(oldIndex, 1);
+      // Insert at new position
+      scheduleSlots.splice(newIndex, 0, target);
+      
+      recalculateTimes();
+      
+      return {
+        success: true,
+        message: `Moved "${target.title}" to ${action.params.to}`
+      };
+    }
+
+    // Execute SET_THEME action
+    function executeSetTheme(action) {
+      const target = findTaskByTitle(action.target);
+      
+      if (!target) {
+        return { success: false, message: `Could not find task "${action.target}"` };
+      }
+      
+      const oldTheme = target.theme;
+      target.theme = action.params.theme;
+      target.badgeClass = 'badge-' + action.params.theme;
+      
+      return {
+        success: true,
+        message: `Changed "${target.title}" from ${oldTheme} to ${action.params.theme}`
+      };
+    }
+
+    // Execute BULK_UPDATE action
+    function executeBulkUpdate(action) {
+      // Filter tasks matching the criteria
+      const matchingTasks = scheduleSlots.filter(slot => {
+        if (action.params.filter === 'breaks') return slot.theme === 'break';
+        if (action.params.filter === 'study') return slot.theme === 'study';
+        if (action.params.filter === 'exercise') return slot.theme === 'exercise';
+        if (action.params.filter === 'all') return true;
+        return false;
+      });
+      
+      let updatedCount = 0;
+      matchingTasks.forEach(slot => {
+        if (action.params.action === 'SET_DURATION') {
+          const oldDuration = (slot.endH * 60 + slot.endM) - (slot.startH * 60 + slot.startM);
+          const newDuration = parseDuration(action.params.duration);
+          const currentEndMinutes = slot.endH * 60 + slot.endM;
+          const newEndMinutes = (slot.startH * 60 + slot.startM) + newDuration;
+          
+          slot.endH = Math.floor(newEndMinutes / 60) % 24;
+          slot.endM = newEndMinutes % 60;
+          updatedCount++;
+        }
+      });
+      
+      recalculateTimes();
+      
+      return {
+        success: true,
+        message: `Updated ${updatedCount} task(s) to ${action.params.duration}`
+      };
     }
 
     // Initialize app

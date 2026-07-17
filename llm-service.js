@@ -190,6 +190,91 @@ ${titles}`;
     }
   }
 
+  // Interpret natural language chat command into structured action
+  async interpretChatCommand(command, schedule) {
+    if (!this.config || !this.configLoaded || !this.config.endpoint) {
+      throw new Error('AI service is not configured');
+    }
+
+    const scheduleContext = schedule.map((slot, i) => 
+      `${i + 1}. ${slot.title} (${this.formatTime(slot.startH, slot.startM)} - ${this.formatTime(slot.endH, slot.endM)}) - ${slot.theme}`
+    ).join('\n');
+
+    const systemPrompt = `You are a schedule management assistant that parses natural language commands into structured JSON actions.
+
+Available actions:
+1. INSERT - Add a new task. Target: "after:Title", "before:Title", or "TIME" (e.g., "4:30 AM")
+2. DELETE - Remove a task. Target: task title or reference
+3. MODIFY_DURATION - Change a task's duration. Target: task title
+4. MOVE - Move a task. Target: task title, params.to: "after:X" or "before:X"
+5. SET_THEME - Change a task's theme. Target: task title
+6. BULK_UPDATE - Update multiple tasks. Params.filter: "breaks", "study", "exercise", "all"
+
+Themes: study, break, exercise, leisure, special
+
+Current schedule:
+${scheduleContext}
+
+Output ONLY valid JSON with this exact structure:
+{
+  "action": "INSERT|DELETE|MODIFY_DURATION|MOVE|SET_THEME|BULK_UPDATE",
+  "target": "task title or reference",
+  "params": { ... action-specific parameters },
+  "confirmation": "Natural language explanation of what will be done"
+}`;
+
+    const userPrompt = command;
+
+    const body = {
+      model: this.config.model,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      temperature: 0.3,
+      max_tokens: 2000
+    };
+
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      if (this.config.apiKey && this.config.apiKey.trim() !== '') {
+        headers['Authorization'] = `Bearer ${this.config.apiKey}`;
+      }
+
+      const response = await fetch(this.config.endpoint, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body)
+      });
+
+      if (!response.ok) {
+        throw new Error(`LLM API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const content = data.choices[0]?.message?.content || '';
+      
+      // Clean up response
+      let jsonContent = content.replace(/```(?:json)?/g, '').trim();
+      
+      const parsed = JSON.parse(jsonContent);
+      console.log('Interpreted command:', parsed);
+      return parsed;
+    } catch (error) {
+      console.error('Error interpreting chat command:', error);
+      throw error;
+    }
+  }
+
+  // Format time as 12-hour string
+  formatTime(h, m) {
+    const minutes = m.toString().padStart(2, '0');
+    if (h === 0) return '12:' + minutes + ' AM';
+    if (h === 12) return '12:' + minutes + ' PM';
+    if (h > 12) return (h - 12) + ':' + minutes + ' PM';
+    return h + ':' + minutes + ' AM';
+  }
+
   isEnabled() {
     return this.configLoaded && this.config && this.config.endpoint;
   }
