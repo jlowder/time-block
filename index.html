@@ -563,7 +563,7 @@
     /* AI Chat Panel */
     .ai-chat-container {
       position: relative;
-      margin: 0 auto 24px;
+      margin: 0 auto 34px;
       width: 100%;
       max-width: 800px;
       background: rgba(79, 195, 247, 0.08);
@@ -742,22 +742,22 @@
       .live-status-bar { flex-direction: column; gap: 12px; }
       .footer-controls { flex-direction: column; gap: 16px; }
       .footer-stats { flex-wrap: wrap; justify-content: center; }
-      
+
       /* AI Chat responsive */
       .ai-chat-header {
         flex-direction: column;
         align-items: flex-start;
       }
-      
+
       .ai-chat-subtitle {
         margin-left: 0;
         font-size: 0.75rem;
       }
-      
+
       .ai-chat-message {
         max-width: 95%;
       }
-      
+
       .schedule-container {
         padding-bottom: 420px; /* More space on mobile for stacked footer + chat */
       }
@@ -788,15 +788,15 @@
       <span class="ai-chat-title">🤖 AI Assistant</span>
       <span class="ai-chat-subtitle">Describe changes naturally</span>
     </div>
-    
+
     <div class="ai-chat-messages" id="aiChatMessages">
       <!-- Chat messages rendered here -->
     </div>
-    
+
     <div class="ai-chat-input-area">
-      <input 
-        type="text" 
-        id="aiChatInput" 
+      <input
+        type="text"
+        id="aiChatInput"
         placeholder="e.g., 'Add a 15-minute break after Exercise'..."
         autocomplete="off"
       >
@@ -904,7 +904,7 @@
     let lastActiveSlot = -1;
     let soundEnabled = true;
     let audioCtx = null;
-    
+
     // AI Chat state
     let chatHistory = []; // Array of {role: 'user'|'ai'|'system', content: string, timestamp}
     let isProcessingChat = false;
@@ -924,7 +924,7 @@
     const importExportBtn = document.getElementById('importExportBtn');
     const importExportModal = document.getElementById('importExportModal');
     const importInput = document.getElementById('importInput');
-    
+
     // AI Chat DOM elements
     const aiChatContainer = document.getElementById('aiChatContainer');
     const aiChatMessages = document.getElementById('aiChatMessages');
@@ -1912,46 +1912,46 @@
     async function handleChatSubmit() {
       const input = aiChatInput.value.trim();
       if (!input || isProcessingChat) return;
-      
+
       isProcessingChat = true;
       aiChatInput.disabled = true;
-      
+
       // Add user message
       addChatMessage('user', input);
       aiChatInput.value = '';
-      
+
       // Show thinking indicator
       showThinkingIndicator();
-      
+
       try {
         // Parse command with AI
         const action = await llmService.interpretChatCommand(input, scheduleSlots);
-        
+
         // Hide thinking, show AI confirmation
         hideThinkingIndicator();
         addChatMessage('ai', action.confirmation);
-        
+
         // Execute the action
         const result = executeScheduleAction(action);
-        
+
         // Update UI
         renderSchedule();
         saveToStorage();
         updateTotalDuration();
         updateTaskCount();
-        
+
         // Show action result
         if (result.success) {
           addChatMessage('system', `✓ ${result.message}`);
         } else {
           addChatMessage('ai', `❌ ${result.message}`);
         }
-        
+
       } catch (error) {
         hideThinkingIndicator();
         addChatMessage('ai', `Sorry, I couldn't understand that. ${error.message}`);
       }
-      
+
       isProcessingChat = false;
       aiChatInput.disabled = false;
       aiChatInput.focus();
@@ -1971,7 +1971,7 @@
       // Check for "after:X" or "before:X" format
       const afterMatch = reference.match(/^after:(.+)$/i);
       const beforeMatch = reference.match(/^before:(.+)$/i);
-      
+
       if (afterMatch) {
         const target = findTaskByTitle(afterMatch[1]);
         return { type: 'after', target: target, original: afterMatch[1] };
@@ -1980,13 +1980,13 @@
         const target = findTaskByTitle(beforeMatch[1]);
         return { type: 'before', target: target, original: beforeMatch[1] };
       }
-      
+
       // Check for time-based reference (e.g., "4:30 AM", "0630")
       const timeMinutes = parseTimeToMinutes(reference);
       if (timeMinutes !== null) {
         return { type: 'time', minutes: timeMinutes };
       }
-      
+
       // Fuzzy match on title
       const target = findTaskByTitle(reference);
       return { type: 'exact', target: target, original: reference };
@@ -1995,37 +1995,38 @@
     // Find a task by title (exact or fuzzy match)
     function findTaskByTitle(title) {
       if (!title) return null;
-      
+
       // Exact match first
       const exactMatch = scheduleSlots.find(slot => slot.title.toLowerCase() === title.toLowerCase());
       if (exactMatch) return exactMatch;
-      
+
       // Fuzzy match (contains)
       const fuzzyMatch = scheduleSlots.find(slot => slot.title.toLowerCase().includes(title.toLowerCase()));
       if (fuzzyMatch) return fuzzyMatch;
-      
+
       // Check for ordinal references like "first break", "second study session"
       return findTaskByOrdinal(title);
     }
 
     // Find task by ordinal reference (e.g., "first break", "second study session")
     function findTaskByOrdinal(title) {
+      if (!title) return null;
       const titleLower = title.toLowerCase();
-      
+
       // Extract ordinal
       const firstMatch = titleLower.startsWith('first ');
       const secondMatch = titleLower.startsWith('second ');
       const thirdMatch = titleLower.startsWith('third ');
-      
+
       let ordinalNum = 0;
       let searchTitle = titleLower;
-      
+
       if (firstMatch) { ordinalNum = 1; searchTitle = titleLower.slice(6); }
       else if (secondMatch) { ordinalNum = 2; searchTitle = titleLower.slice(7); }
       else if (thirdMatch) { ordinalNum = 3; searchTitle = titleLower.slice(6); }
-      
+
       if (ordinalNum === 0) return null;
-      
+
       // Find matching tasks by theme or title
       const matches = scheduleSlots.filter(slot => {
         if (searchTitle.includes('break')) return slot.theme === 'break';
@@ -2035,7 +2036,7 @@
         if (searchTitle.includes('special')) return slot.theme === 'special';
         return slot.title.toLowerCase().includes(searchTitle);
       });
-      
+
       return ordinalNum <= matches.length ? matches[ordinalNum - 1] : null;
     }
 
@@ -2047,25 +2048,26 @@
         let h = parseInt(amPmMatch[1]);
         const m = parseInt(amPmMatch[2]);
         const amPm = amPmMatch[3].toUpperCase();
-        
+
         if (amPm === 'PM' && h !== 12) h += 12;
         if (amPm === 'AM' && h === 12) h = 0;
-        
+
         return h * 60 + m;
       }
-      
+
       const simpleMatch = timeStr.match(/(\d+):?(\d*)/);
       if (simpleMatch) {
         let h = parseInt(simpleMatch[1]);
         const m = simpleMatch[2] ? parseInt(simpleMatch[2]) : 0;
         return h * 60 + m;
       }
-      
+
       return null;
     }
 
     // Calculate insert index based on reference
     function calculateInsertIndex(reference) {
+      if (!reference) return scheduleSlots.length;
       if (reference.type === 'after' && reference.target) {
         const targetIndex = scheduleSlots.indexOf(reference.target);
         return targetIndex >= 0 ? targetIndex + 1 : scheduleSlots.length;
@@ -2089,7 +2091,7 @@
         const targetIndex = scheduleSlots.indexOf(reference.target);
         return targetIndex >= 0 ? targetIndex + 1 : scheduleSlots.length;
       }
-      
+
       // Default: append to end
       return scheduleSlots.length;
     }
@@ -2099,27 +2101,28 @@
     // Parse duration string to minutes
     // Supports: "15 minutes", "15 min", "1 hour", "1h", "1 hour 30 min", "quarter hour"
     function parseDuration(durationStr) {
-      if (!durationStr) return 15; // default
-      
-      durationStr = durationStr.toLowerCase().trim();
-      
+      if (durationStr == null || durationStr === '') return 15; // default
+      if (typeof durationStr === 'number') return durationStr;
+
+      durationStr = String(durationStr).toLowerCase().trim();
+
       // Quarter hour
       if (durationStr.includes('quarter')) return 15;
-      
+
       let totalMinutes = 0;
-      
+
       // Extract hours
       const hoursMatch = durationStr.match(/(\d+)\s*(?:hour|h)/);
       if (hoursMatch) {
         totalMinutes += parseInt(hoursMatch[1]) * 60;
       }
-      
+
       // Extract minutes
       const minutesMatch = durationStr.match(/(\d+)\s*(?:minute|min)/);
       if (minutesMatch) {
         totalMinutes += parseInt(minutesMatch[1]);
       }
-      
+
       // If only a number (e.g., "15")
       if (totalMinutes === 0) {
         const numMatch = durationStr.match(/(\d+)/);
@@ -2127,7 +2130,7 @@
           return parseInt(numMatch[1]);
         }
       }
-      
+
       return totalMinutes > 0 ? totalMinutes : 15;
     }
 
@@ -2136,13 +2139,13 @@
     // Auto-detect theme from title
     function autoDetectTheme(title) {
       const titleLower = title.toLowerCase();
-      
+
       if (/break|rest|snack|lunch|coffee|tea|recharge/i.test(titleLower)) return 'break';
       if (/exercise|workout|run|walk|stretch|yoga|gym|fitness/i.test(titleLower)) return 'exercise';
       if (/study|work|read|learn|code|project|focus|deep/i.test(titleLower)) return 'study';
       if (/hobby|creative|relax|leisure|fun|play/i.test(titleLower)) return 'leisure';
       if (/meeting|call|collaborat|special|event/i.test(titleLower)) return 'special';
-      
+
       return 'study'; // default
     }
 
@@ -2153,17 +2156,17 @@
       // Find available start time (append to end for now, will be recalculated)
       const lastSlot = scheduleSlots[scheduleSlots.length - 1];
       let startH, startM;
-      
+
       if (lastSlot) {
         startH = lastSlot.endH;
         startM = lastSlot.endM;
       } else {
         startH = 4; startM = 0; // Default to 4 AM
       }
-      
+
       const startMinutes = startH * 60 + startM;
-      const endMinutes = startMinutes + duration;
-      
+      const endMinutes = startMinutes + (typeof duration === 'number' ? duration : parseDuration(duration));
+
       return {
         id: 'slot-' + Date.now() + Math.random().toString(36).substr(2, 9),
         startH: Math.floor(startMinutes / 60) % 24,
@@ -2181,11 +2184,16 @@
 
     // Execute a schedule action based on parsed command
     function executeScheduleAction(action) {
+      if (action.action === 'DELETE' && action.target && action.target.toLowerCase().includes('all')) {
+        return executeDeleteAll(action);
+      }
       switch (action.action) {
         case 'INSERT':
           return executeInsert(action);
         case 'DELETE':
           return executeDelete(action);
+        case 'DELETE_ALL':
+          return executeDeleteAll(action);
         case 'MODIFY_DURATION':
           return executeModifyDuration(action);
         case 'MOVE':
@@ -2199,46 +2207,56 @@
       }
     }
 
+    // Execute DELETE_ALL action
+    function executeDeleteAll() {
+      scheduleSlots = [];
+      recalculateTimes();
+      sectionDividers = [];
+      return { success: true, message: 'All tasks deleted from schedule' };
+    }
+
     // Execute INSERT action
     function executeInsert(action) {
       const { title, duration, description, theme } = action.params;
-      const reference = parseReference(action.target);
+      const reference = action.target ? parseReference(action.target) : null;
       
+      const parsedDuration = parseDuration(duration || 15);
+
       const newSlot = createSlot({
         title,
-        duration: duration || 15,
+        duration: parsedDuration,
         description,
         theme: theme || autoDetectTheme(title)
       });
-      
+
       const insertIndex = calculateInsertIndex(reference);
       scheduleSlots.splice(insertIndex, 0, newSlot);
-      
+
       recalculateTimes();
       recalculateBadge(newSlot);
-      
+
       return {
         success: true,
-        message: `Added "${title}" (${duration || 15} min) to your schedule`
+        message: `Added "${title}" (${parsedDuration} min) to your schedule`
       };
     }
 
     // Execute DELETE action
     function executeDelete(action) {
       const target = findTaskByTitle(action.target);
-      
+
       if (!target) {
         return { success: false, message: `Could not find task "${action.target}"` };
       }
-      
+
       const index = scheduleSlots.indexOf(target);
       if (index === -1) {
         return { success: false, message: 'Task not found' };
       }
-      
+
       scheduleSlots.splice(index, 1);
       recalculateTimes();
-      
+
       return {
         success: true,
         message: `Removed "${target.title}" from your schedule`
@@ -2248,25 +2266,25 @@
     // Execute MODIFY_DURATION action
     function executeModifyDuration(action) {
       const target = findTaskByTitle(action.target);
-      
+
       if (!target) {
         return { success: false, message: `Could not find task "${action.target}"` };
       }
-      
+
       const oldDuration = (target.endH * 60 + target.endM) - (target.startH * 60 + target.startM);
       const newDuration = parseDuration(action.params.duration);
       const durationChange = newDuration - oldDuration;
-      
+
       // Update the target task's end time
       const currentEndMinutes = target.endH * 60 + target.endM;
       const newEndMinutes = currentEndMinutes + durationChange;
-      
+
       target.endH = Math.floor(newEndMinutes / 60) % 24;
       target.endM = newEndMinutes % 60;
-      
+
       recalculateTimes();
       recalculateBadge(target);
-      
+
       return {
         success: true,
         message: `Updated "${target.title}" duration to ${newDuration} min`
@@ -2276,22 +2294,22 @@
     // Execute MOVE action
     function executeMove(action) {
       const target = findTaskByTitle(action.target);
-      
+
       if (!target) {
         return { success: false, message: `Could not find task "${action.target}"` };
       }
-      
+
       const oldIndex = scheduleSlots.indexOf(target);
       const reference = parseReference(action.params.to);
       const newIndex = calculateInsertIndex(reference);
-      
+
       // Remove from old position
       scheduleSlots.splice(oldIndex, 1);
       // Insert at new position
       scheduleSlots.splice(newIndex, 0, target);
-      
+
       recalculateTimes();
-      
+
       return {
         success: true,
         message: `Moved "${target.title}" to ${action.params.to}`
@@ -2301,15 +2319,15 @@
     // Execute SET_THEME action
     function executeSetTheme(action) {
       const target = findTaskByTitle(action.target);
-      
+
       if (!target) {
         return { success: false, message: `Could not find task "${action.target}"` };
       }
-      
+
       const oldTheme = target.theme;
       target.theme = action.params.theme;
       target.badgeClass = 'badge-' + action.params.theme;
-      
+
       return {
         success: true,
         message: `Changed "${target.title}" from ${oldTheme} to ${action.params.theme}`
@@ -2326,7 +2344,7 @@
         if (action.params.filter === 'all') return true;
         return false;
       });
-      
+
       let updatedCount = 0;
       matchingTasks.forEach(slot => {
         if (action.params.action === 'SET_DURATION') {
@@ -2334,15 +2352,15 @@
           const newDuration = parseDuration(action.params.duration);
           const currentEndMinutes = slot.endH * 60 + slot.endM;
           const newEndMinutes = (slot.startH * 60 + slot.startM) + newDuration;
-          
+
           slot.endH = Math.floor(newEndMinutes / 60) % 24;
           slot.endM = newEndMinutes % 60;
           updatedCount++;
         }
       });
-      
+
       recalculateTimes();
-      
+
       return {
         success: true,
         message: `Updated ${updatedCount} task(s) to ${action.params.duration}`

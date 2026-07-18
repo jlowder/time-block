@@ -203,21 +203,24 @@ ${titles}`;
     const systemPrompt = `You are a schedule management assistant that parses natural language commands into structured JSON actions.
 
 Available actions:
-1. INSERT - Add a new task. Target: "after:Title", "before:Title", or "TIME" (e.g., "4:30 AM")
-2. DELETE - Remove a task. Target: task title or reference
-3. MODIFY_DURATION - Change a task's duration. Target: task title
-4. MOVE - Move a task. Target: task title, params.to: "after:X" or "before:X"
-5. SET_THEME - Change a task's theme. Target: task title
-6. BULK_UPDATE - Update multiple tasks. Params.filter: "breaks", "study", "exercise", "all"
+1. INSERT - Add a new task. Target: "after:Title" or "before:Title"
+2. DELETE - Remove a single task. Target: the exact task title (e.g., "Lunch")
+3. DELETE_ALL - Remove every task from the schedule. Target: "" or "all"
+4. MODIFY_DURATION - Change a task's duration. Target: task title
+5. MOVE - Move a task. Target: task title, params.to: "after:X" or "before:X"
+6. SET_THEME - Change a task's theme. Target: task title
+7. BULK_UPDATE - Update multiple tasks. Params.filter: "breaks", "study", "exercise", "all"
 
 Themes: study, break, exercise, leisure, special
+
+IMPORTANT: If the command says "delete all tasks", "delete everything", or "clear the schedule", use action "DELETE_ALL" with target "all" or "".
 
 Current schedule:
 ${scheduleContext}
 
 Output ONLY valid JSON with this exact structure:
 {
-  "action": "INSERT|DELETE|MODIFY_DURATION|MOVE|SET_THEME|BULK_UPDATE",
+  "action": "INSERT|DELETE|DELETE_ALL|MODIFY_DURATION|MOVE|SET_THEME|BULK_UPDATE",
   "target": "task title or reference",
   "params": { ... action-specific parameters },
   "confirmation": "Natural language explanation of what will be done"
@@ -268,7 +271,9 @@ Output ONLY valid JSON with this exact structure:
 
   // Format time as 12-hour string
   formatTime(h, m) {
-    const minutes = m.toString().padStart(2, '0');
+    h = (h != null ? h : 0);
+    m = (m != null ? m : 0);
+    const minutes = String(m).padStart(2, '0');
     if (h === 0) return '12:' + minutes + ' AM';
     if (h === 12) return '12:' + minutes + ' PM';
     if (h > 12) return (h - 12) + ':' + minutes + ' PM';
