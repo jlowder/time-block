@@ -200,31 +200,44 @@ ${titles}`;
       `${i + 1}. ${slot.title} (${this.formatTime(slot.startH, slot.startM)} - ${this.formatTime(slot.endH, slot.endM)}) - ${slot.theme}`
     ).join('\n');
 
-    const systemPrompt = `You are a schedule management assistant that parses natural language commands into structured JSON actions.
+    const systemPrompt = `You are a JSON-only API. Output NOTHING but a JSON object.
 
-Available actions:
-1. INSERT - Add a new task. Target: "after:Title" or "before:Title"
-2. DELETE - Remove a single task. Target: the exact task title (e.g., "Lunch")
-3. DELETE_ALL - Remove every task from the schedule. Target: "" or "all"
-4. MODIFY_DURATION - Change a task's duration. Target: task title
-5. MOVE - Move a task. Target: task title, params.to: "after:X" or "before:X"
-6. SET_THEME - Change a task's theme. Target: task title
-7. BULK_UPDATE - Update multiple tasks. Params.filter: "breaks", "study", "exercise", "all"
+JSON schema:
+{
+  "action": "INSERT|DELETE|DELETE_ALL|MODIFY_DURATION|MOVE|SET_THEME|BULK_UPDATE|COMPOUND",
+  "target": "task title or reference",
+  "params": {},
+  "confirmation": "Brief confirmation message"
+}
 
-Themes: study, break, exercise, leisure, special
+Action details:
+- INSERT: Add a single task. Use target for placement reference (e.g., "after:Exercise", "before:Lunch", or a time like "4:30 AM").
+- DELETE: Remove one task by title.
+- DELETE_ALL: Remove all tasks with "all" or "everything" in target.
+- MODIFY_DURATION: Change one task's duration. Params: {"duration": "15 minutes"}.
+- MOVE: Reposition a task. Params: {"to": "after:Exercise"}.
+- SET_THEME: Change task theme. Params: {"theme": "study"}.
+- BULK_UPDATE: Apply changes to multiple tasks at once.
+  - For "SET_DURATION": Params: {"action": "SET_DURATION", "filter": "breaks"|"study"|"all", "duration": "10 minutes"}.
+  - For "INSERT_AFTER": Insert tasks after each matching task. Params: {"action": "INSERT_AFTER", "filter": "breaks"|"study"|"all", "title": "Break", "duration": "5 minutes"}.
+- COMPOUND: Execute multiple actions in one response. Use when the user request requires more than one operation that can't be combined into a single action. Params: {"subActions": [{"action": ..., "target": ..., "params": ...}, ...]}. Each subAction follows the same schema as the main object (minus the confirmation field).
 
-IMPORTANT: If the command says "delete all tasks", "delete everything", or "clear the schedule", use action "DELETE_ALL" with target "all" or "".
+Special cases:
+- Inserting breaks between ALL tasks: Use BULK_UPDATE with action "INSERT_AFTER", filter "all".
+- Inserting breaks before AND after a single task: Use COMPOUND with two INSERT subActions (one with "before:X", one with "after:X").
+- Multiple unrelated operations: Use COMPOUND with multiple subActions.
+
+Rules:
+- ONLY output the JSON object
+- NO natural language before, after, or around the JSON
+- NO explanations
+- NO thinking process
+- NO markdown formatting
+- The response must be parseable by JSON.parse()
 
 Current schedule:
 ${scheduleContext}
-
-Output ONLY valid JSON with this exact structure:
-{
-  "action": "INSERT|DELETE|DELETE_ALL|MODIFY_DURATION|MOVE|SET_THEME|BULK_UPDATE",
-  "target": "task title or reference",
-  "params": { ... action-specific parameters },
-  "confirmation": "Natural language explanation of what will be done"
-}`;
+`;
 
     const userPrompt = command;
 
@@ -235,7 +248,8 @@ Output ONLY valid JSON with this exact structure:
         { role: 'user', content: userPrompt }
       ],
       temperature: 0.3,
-      max_tokens: 2000
+      max_tokens: 2000,
+      response_format: { type: "json_object" }
     };
 
     try {
@@ -257,10 +271,21 @@ Output ONLY valid JSON with this exact structure:
       const data = await response.json();
       const content = data.choices[0]?.message?.content || '';
       
-      // Clean up response
-      let jsonContent = content.replace(/```(?:json)?/g, '').trim();
+      // Extract JSON object from content: strip everything before first { and after last }
+      const firstBrace = content.indexOf('{');
+      const lastBrace = content.lastIndexOf('}');
+      if (firstBrace === -1 || lastBrace === -1 || lastBrace <= firstBrace) {
+        throw new Error(`No valid JSON found in LLM response: ${content.substring(0, 200).replace(/\n/g, ' ')}`);
+      }
       
-      const parsed = JSON.parse(jsonContent);
+      const jsonStr = content.substring(firstBrace, lastBrace + 1);
+      let parsed;
+      try {
+        parsed = JSON.parse(jsonStr);
+      } catch (e) {
+        throw new Error(`Invalid JSON in LLM response: ${e.message}. Content: ${jsonStr.substring(0, 200).replace(/\n/g, ' ')}`);
+      }
+      
       console.log('Interpreted command:', parsed);
       return parsed;
     } catch (error) {

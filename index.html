@@ -1758,19 +1758,24 @@
 
           if (updatedCount > 0) {
             saveToStorage();
-            renderSchedule();
-            updateTotalDuration();
-            updateTaskCount();
-            showNotification(`AI regenerated ${updatedCount} field(s)`, 'success');
           } else {
             showNotification('Could not generate AI fields', 'error');
           }
         } else {
-          showNotification('AI service unavailable, using defaults', 'info');
+          showNotification('AI service unavailable, using current values', 'info');
         }
+
+        // Always re-render to exit edit mode
+        renderSchedule();
+        updateTotalDuration();
+        updateTaskCount();
       } catch (error) {
         console.error('AI field generation error:', error);
         showNotification('AI field generation failed: ' + error.message, 'error');
+        // Still re-render to exit edit mode
+        renderSchedule();
+        updateTotalDuration();
+        updateTaskCount();
       } finally {
         const loadingEl = document.getElementById('aiLoading');
         if (loadingEl) loadingEl.remove();
@@ -2202,6 +2207,8 @@
           return executeSetTheme(action);
         case 'BULK_UPDATE':
           return executeBulkUpdate(action);
+        case 'COMPOUND':
+          return executeCompound(action);
         default:
           return { success: false, message: 'Unknown action type' };
       }
@@ -2217,10 +2224,17 @@
 
     // Execute INSERT action
     function executeInsert(action) {
-      const { title, duration, description, theme } = action.params;
+      const params = action.params || {};
+      const title = params.title || 'Untitled Task';
+      const duration = params.duration || 15;
+      const description = params.description;
+      const theme = params.theme;
       const reference = action.target ? parseReference(action.target) : null;
       
-      const parsedDuration = parseDuration(duration || 15);
+      let parsedDuration = parseDuration(duration);
+      // ENFORCE MINIMUM DURATIONS FOR BREAKS
+      const isBreak = theme === 'break' || /break|rest|snack|coffee|tea|recharge/i.test(title);
+      if (isBreak) parsedDuration = 5; // Breaks are always 5 minutes minimum
 
       const newSlot = createSlot({
         title,
@@ -2359,11 +2373,75 @@
         }
       });
 
+      // INSERT_AFTER: Insert break tasks after each matching task (skip existing breaks)
+      if (action.params.action === 'insert_after' || action.params.action === 'INSERT_AFTER') {
+        const breakTitle = action.params.title || 'Break';
+        const breakDuration = parseDuration(action.params.duration || 5);
+
+        // Insert in reverse order, tracking original indices to avoid off-by-one shifts
+        let insertedCount = 0;
+        for (let i = matchingTasks.length - 1; i >= 0; i--) {
+          const target = matchingTasks[i];
+          const originalIdx = scheduleSlots.indexOf(target);
+          
+          // Skip if target is itself a break, or if there's already a break right after it
+          if (target.theme === 'break') continue;
+          
+          const nextSlot = scheduleSlots[originalIdx + 1 + insertedCount];
+          if (nextSlot && nextSlot.theme === 'break') continue;
+
+          const newBreak = createSlot({
+            title: breakTitle,
+            duration: breakDuration,
+            theme: 'break'
+          });
+          
+          const insertIdx = originalIdx + 1 + insertedCount;
+          scheduleSlots.splice(insertIdx, 0, newBreak);
+          recalculateBadge(newBreak);
+          insertedCount++;
+        }
+
+        recalculateTimes();
+
+        return {
+          success: true,
+          message: `Added ${breakDuration}-minute break after ${insertedCount} task(s)`
+        };
+      }
+
       recalculateTimes();
 
       return {
         success: true,
         message: `Updated ${updatedCount} task(s) to ${action.params.duration}`
+      };
+    }
+
+    // Execute COMPOUND action - run multiple sub-actions in sequence
+    function executeCompound(action) {
+      const subActions = action.params && action.params.subActions;
+      
+      if (!Array.isArray(subActions) || subActions.length === 0) {
+        return { success: false, message: 'COMPOUND action requires non-empty subActions array' };
+      }
+
+      // Execute each sub-action in order
+      for (let i = 0; i < subActions.length; i++) {
+        const subAction = subActions[i];
+        // Execute using the main dispatcher (which will route to correct handler)
+        const result = executeScheduleAction(subAction);
+        if (!result.success) {
+          return { success: false, message: `Sub-action ${i + 1} failed: ${result.message}` };
+        }
+      }
+
+      // Recalculate times after all sub-actions complete
+      recalculateTimes();
+
+      return {
+        success: true,
+        message: `Executed ${subActions.length} action(s)`
       };
     }
 
