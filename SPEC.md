@@ -53,67 +53,25 @@ Section dividers organize the schedule into logical groups:
 ### 4. Edit Mode Operations
 
 **Toggle Edit Mode**
-- Enables/disables inline editing of all schedule slots.
-- When enabled: shows edit forms with time inputs, title field, icon input, theme selector, and action buttons.
-- When disabled: displays read-only cards.
-- Toggles the visibility of the "Add Task" container.
-
-**Edit a Single Slot**
-1. Click the edit button on a card (or toggle edit mode).
-2. Modify start/end times, title, icon, theme, and description.
-3. Click **Save** to persist changes.
-4. If end time is ≤ start time, show error notification.
-
-**Cancel Edit**
-- Discard pending changes and revert to display mode.
-
-**Delete a Task**
-- Remove a slot from the schedule.
-- Update all subsequent section divider indices.
-- Show confirmation dialog.
-- Prevent deletion if only one slot remains.
-
-### 5. Add New Task
-
-Users can insert a new activity via the "Add Task" form (visible only in edit mode):
-
-**Fields:**
-- Task name (required)
-- Start hour/minute
-- End hour/minute
-- Description (optional)
-- Icon (emoji, optional)
-- Theme (study/break/exercise/leisure/special)
-
-**Validation:**
-- Title is required.
-- End time must be after start time.
-
-**Insertion Logic:**
-- New task is inserted in chronological order based on start time.
-- All section divider indices ≥ insertion point are incremented by 1.
-- Times are *not* automatically recalculated upon insertion (relative timing is preserved).
-
-### 6. Reordering (Drag & Drop)
-
-**Time-Block Drags**
-- Cards are draggable.
+- Enables/disables the chatbot interface
+- When toggled from enabled to disabled, the LLM will be queried to "decorate" the tasks: icon (emoji) selection, and generation of the description for every task.
+- While edit mode is active, cards are draggable and can be re-ordered by drag and drop.
 - Dropping on another card shifts the dragged card to that position.
 - All intermediate slots shift accordingly.
 - Section divider indices are updated based on position changes.
-
-**Dragging to Dividers**
 - Cards can be dropped onto section dividers.
 - The dropped card is inserted *before* the divider's current index.
 - Section divider indices are updated appropriately.
-
-**Post-Drag Operations:**
 - Call `recalculateTimes()` to ensure continuous time progression.
 - The first task retains its original start time.
 - Each subsequent task starts when the previous one ends (duration preserved).
 - Duration badges are updated to reflect new end times.
 - Save to localStorage.
 - Show success notification.
+
+**LLM Chatbot Interface**
+- In edit mode, tasks may be added, edited, or deleted via the chatbot interface.
+- Examples are: "delete all tasks", "add a task called Read Quantum Programming for 15 minutes starting at 9:00 AM", and "Insert breaks between study blocks".
 
 ### 7. Time Recalculation
 
@@ -187,12 +145,6 @@ Users can insert a new activity via the "Add Task" form (visible only in edit mo
 
 ### 12. AI Field Regeneration
 
-**Overview**
-- Optional feature that regenerates icon, theme, and description fields for all schedule slots
-- Triggered when Edit Mode is toggled OFF
-- Works without configuration (uses default emoji "⭐" and theme "study" for all slots)
-- Configurable via `.llm-config.json` to use an OpenAI-compatible LLM endpoint
-
 **Configuration**
 - Config file: `.llm-config.json` (JSON format) in same directory as `index.html`
 - Required fields:
@@ -227,12 +179,6 @@ window.llmService.setConfig({
 - Icons must be 1-2 character emoji
 - Descriptions must be 1 short, engaging sentence
 - Response format: JSON object with titles as keys
-
-**Behavior Without Config**
-- AI service loads but reports unavailable
-- No field regeneration occurs
-- User sees: "AI service is not configured" in console
-- Default values (⭐, study) are used for all slots
 
 **Error Handling**
 - If config is missing: use default values, log info to console
