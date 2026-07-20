@@ -71,6 +71,8 @@ Section dividers organize the schedule into logical groups:
 
 **LLM Chatbot Interface**
 - In edit mode, tasks may be added, edited, or deleted via the chatbot interface.
+- the chat implementation is agentic using Vercel AI SDK
+- the LLM interacts with the task list via the use of tools
 - Examples are: "delete all tasks", "add a task called Read Quantum Programming for 15 minutes starting at 9:00 AM", and "Insert breaks between study blocks".
 
 ### 7. Time Recalculation
