@@ -1,6 +1,22 @@
 # macOS system files
 .DS_Store
 
+# Next.js build output
+.next/
+out/
+
+# Node.js
+node_modules/
+
+# Environment files (covers .env.local, .env.development.local, etc.)
+.env*.local
+
+# Coverage reports
+coverage/
+
+# Logs
+*.log
+
 # IDE / Editor files
 .juggler/
 .idea/
