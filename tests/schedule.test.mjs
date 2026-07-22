@@ -148,6 +148,72 @@ const lateH = Math.floor(lateWrapped / 60);
 const lateM = lateWrapped % 60;
 assert(lateH === 0 && lateM === 20, `got ${lateH}:${String(lateM).padStart(2, '0')} (expected 0:20)`);
 
+// Test 16: Add task via LLM chat and verify 12:00 PM (not AM)
+console.log('\nTest 16: Add task via LLM chat - "add a task at 11:45 for 15 minutes"');
+try {
+  const prompt = 'Add a task called "LLM Test" at 11:45 AM for 15 minutes';
+  const response = await fetch('http://localhost:3000/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt })
+  });
+
+  if (!response.ok) throw new Error(`API returned ${response.status}`);
+
+  const data = await response.json();
+  if (!data.schedule) throw new Error('No schedule in response');
+
+  const lastSlot = data.schedule.slots[data.schedule.slots.length - 1];
+  const endTime = formatTime12(lastSlot.endH, lastSlot.endM);
+
+  if (endTime !== '12:00 PM') {
+    throw new Error(`Expected 12:00 PM, got ${endTime} (endH=${lastSlot.endH}, endM=${lastSlot.endM})`);
+  }
+
+  console.log('  ✅ PASSED: LLM added task with correct end time:', endTime);
+  passed++;
+} catch (err) {
+  console.log('  ❌ FAILED:', err.message);
+  failed++;
+}
+
+// Test 17: Add task "at the end" and verify duration is correct
+console.log('\nTest 17: Add task via LLM chat - "add task at end for 15 minutes"');
+try {
+  const prompt = 'Add a task at the end of the schedule for 15 minutes';
+  const response = await fetch('http://localhost:3000/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt })
+  });
+
+  if (!response.ok) throw new Error(`API returned ${response.status}`);
+
+  const data = await response.json();
+  if (!data.schedule) throw new Error('No schedule in response');
+
+  const lastSlot = data.schedule.slots[data.schedule.slots.length - 1];
+  const startTime = formatTime12(lastSlot.startH, lastSlot.startM);
+  const endTime = formatTime12(lastSlot.endH, lastSlot.endM);
+  const taskDuration = durationMinutes(lastSlot.endH, lastSlot.endM, lastSlot.startH, lastSlot.startM);
+
+  // Verify duration is 15 minutes
+  if (taskDuration !== 15) {
+    throw new Error(`Expected 15 min duration, got ${taskDuration} min`);
+  }
+
+  // Verify end time format is valid (not 0:0 AM)
+  if (lastSlot.endH === 0 && lastSlot.endM === 0 && lastSlot.startH > 0) {
+    throw new Error(`Invalid end time (endH=0, endM=0 after startH=${lastSlot.startH})`);
+  }
+
+  console.log('  ✅ PASSED: LLM added 15-min task:', startTime, '-', endTime);
+  passed++;
+} catch (err) {
+  console.log('  ❌ FAILED:', err.message);
+  failed++;
+}
+
 // Summary
 console.log('\n=== Test Summary ===');
 console.log(`Passed: ${passed}`);
