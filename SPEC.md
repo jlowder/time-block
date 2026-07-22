@@ -19,7 +19,7 @@ The Interactive Daily Schedule is a web-based application for creating, managing
 
 ### 2. Time-Block Structure
 
-Each schedule slot (`time-block`) contains the following editable properties:
+Each schedule slot (`time-block`) contains the following properties:
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -54,7 +54,7 @@ Section dividers organize the schedule into logical groups:
 
 **Toggle Edit Mode**
 - Enables/disables the chatbot interface
-- When toggled from enabled to disabled, the LLM will be queried to "decorate" the tasks: icon (emoji) selection, and generation of the description for every task.
+- When toggled from enabled to disabled, the LLM will be queried to "decorate" the tasks: this will generate the following fields: icon, desc, theme, badge, and badge class.
 - While edit mode is active, cards are draggable and can be re-ordered by drag and drop.
 - Dropping on another card shifts the dragged card to that position.
 - All intermediate slots shift accordingly.
