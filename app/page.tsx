@@ -34,47 +34,22 @@ function getActiveSlotIndex(slots: TimeBlock[] | undefined): number {
   const now = new Date();
   const currentMin = now.getHours() * 60 + now.getMinutes();
 
-  for (let i = slots.length - 1; i >= 0; i--) {
+  for (let i = 0; i < slots.length; i++) {
     const slot = slots[i];
     const startMin = slot.startH * 60 + slot.startM;
     const endMin = slot.endH * 60 + slot.endM;
-    if (currentMin >= startMin) return i;
+
+    if (currentMin >= startMin && currentMin < endMin) {
+      return i; // Slot is currently active
+    }
   }
+
+  // If current time is past all slots, return -1 (no active slot)
   return -1;
 }
 
 function calcActiveSlotIndex(slots: TimeBlock[] | undefined): number {
   return getActiveSlotIndex(slots);
-}
-
-function recalculateSlots(slots: TimeBlock[], _fromIndex: number, toIndex: number): TimeBlock[] {
-  if (slots.length <= 1) return slots;
-  const copy = slots.map((s) => ({ ...s }));
-
-  // Store original durations BEFORE any modifications
-  const originalDurations = copy.map(
-    (s) => (s.endH * 60 + s.endM) - (s.startH * 60 + s.startM),
-  );
-
-  // First slot keeps its original start time (unchanged)
-  // Initialize currentTotal to the first slot's END time
-  let currentTotal = copy[0].endH * 60 + copy[0].endM;
-
-  for (let i = 1; i < copy.length; i++) {
-    const slotDuration = originalDurations[i]; // Each slot's OWN duration
-    const newStartTotal = currentTotal;
-    const newEndTotal = newStartTotal + slotDuration;
-    copy[i] = {
-      ...copy[i],
-      startH: Math.floor(newStartTotal / 60),
-      startM: newStartTotal % 60,
-      endH: Math.floor(newEndTotal / 60),
-      endM: newEndTotal % 60,
-    };
-    currentTotal = newEndTotal;
-  }
-
-  return copy;
 }
 
 export default function HomePage() {
@@ -89,11 +64,6 @@ export default function HomePage() {
   const audioCtxRef = useRef<AudioContext | null>(null);
   const prevActiveIndexRef = useRef<number>(-1);
   const prevEditModeRef = useRef(isEditMode);
-
-  // Track previous edit mode
-  useEffect(() => {
-    prevEditModeRef.current = isEditMode;
-  }, [isEditMode]);
 
   // Load schedule from localStorage on mount (client-side only)
   useEffect(() => {
@@ -177,6 +147,38 @@ export default function HomePage() {
 
   const toggleEditMode = useCallback(() => {
     setIsEditMode((prev) => !prev);
+  }, []);
+
+  const recalculateSlots = useCallback((slots: TimeBlock[], fromIndex: number, toIndex: number): TimeBlock[] => {
+    if (fromIndex === toIndex) return slots;
+    if (slots.length <= 1) return slots;
+
+    const copy = slots.map((s) => ({ ...s }));
+
+    // ACTUALLY REORDER: move slot from fromIndex to toIndex
+    const [moved] = copy.splice(fromIndex, 1);
+    copy.splice(toIndex, 0, moved);
+
+    const originalDurations = copy.map(
+      (s) => (s.endH * 60 + s.endM) - (s.startH * 60 + s.startM),
+    );
+
+    let currentTotal = copy[0].endH * 60 + copy[0].endM;
+    for (let i = 1; i < copy.length; i++) {
+      const slotDuration = originalDurations[i];
+      const newStartTotal = currentTotal;
+      const newEndTotal = newStartTotal + slotDuration;
+      copy[i] = {
+        ...copy[i],
+        startH: Math.floor(newStartTotal / 60),
+        startM: newStartTotal % 60,
+        endH: Math.floor(newEndTotal / 60),
+        endM: newEndTotal % 60,
+      };
+      currentTotal = newEndTotal;
+    }
+
+    return copy;
   }, []);
 
   const onSlotDragStart = useCallback((index: number) => {
@@ -288,6 +290,7 @@ export default function HomePage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               prompt: 'Decorate all tasks with icons, descriptions, and themes.',
+              schedule: scheduleData,
             }),
           });
 

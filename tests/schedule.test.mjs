@@ -214,6 +214,60 @@ try {
   failed++;
 }
 
+// Test 18: AI Decoration runs and returns decorated tasks
+console.log('\nTest 18: AI Decoration - verify it runs and returns decorated tasks');
+try {
+  const prompt = 'Please decorate all tasks with icons, descriptions, and themes.';
+  const response = await fetch('http://localhost:3000/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt })
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`API returned ${response.status}: ${errorText}`);
+  }
+
+  const data = await response.json();
+
+  if (!data.schedule) {
+    throw new Error('No schedule in response');
+  }
+
+  // Verify all slots have icon, desc, and theme
+  const undecorated = data.schedule.slots.filter(slot =>
+    !slot.icon || !slot.desc || !slot.theme
+  );
+
+  if (undecorated.length > 0) {
+    throw new Error(`${undecorated.length} slots missing decoration fields (icon, desc, or theme)`);
+  }
+
+  // Verify all slots have theme colors
+  const validThemes = ['study', 'break', 'exercise', 'leisure', 'special'];
+  const invalidThemes = data.schedule.slots.filter(slot =>
+    !validThemes.includes(slot.theme)
+  );
+
+  if (invalidThemes.length > 0) {
+    throw new Error(`${invalidThemes.length} slots have invalid theme`);
+  }
+
+  // Verify text response is present
+  if (!data.text || data.text.length < 10) {
+    throw new Error('Text response too short or missing');
+  }
+
+  console.log('  ✅ PASSED: Decorate ran successfully, all slots decorated');
+  console.log(`     - ${data.schedule.slots.length} slots decorated`);
+  console.log(`     - Response text: "${data.text.substring(0, 50)}..."`);
+  passed++;
+} catch (err) {
+  console.log('  ❌ FAILED:', err.message);
+  failed++;
+}
+
 // Summary
 console.log('\n=== Test Summary ===');
 console.log(`Passed: ${passed}`);

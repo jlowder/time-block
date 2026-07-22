@@ -66,7 +66,21 @@ const addTaskTool = tool({
       endM,
       title,
     };
-    const newSlots = [...currentSchedule.slots, newSlot];
+    // Find the correct insertion position based on start time
+    const startTotal = startH * 60 + startM;
+    let insertIndex = currentSchedule.slots.length;
+    for (let i = 0; i < currentSchedule.slots.length; i++) {
+      const slotStartTotal = currentSchedule.slots[i].startH * 60 + currentSchedule.slots[i].startM;
+      if (startTotal <= slotStartTotal) {
+        insertIndex = i;
+        break;
+      }
+    }
+    const newSlots = [
+      ...currentSchedule.slots.slice(0, insertIndex),
+      newSlot,
+      ...currentSchedule.slots.slice(insertIndex),
+    ];
     const recalculated = schedule.recalculateTimes(newSlots);
     const updatedSchedule: ScheduleData = {
       ...currentSchedule,
@@ -203,7 +217,7 @@ Themes to choose from: study, break, exercise, leisure, special`;
     });
 
     const updatedSchedule: ScheduleData = { ...currentSchedule, slots: updatedSlots };
-    schedule.saveSchedule(updatedSchedule);
+    schedule.setServerSchedule(updatedSchedule);
     return {
       success: true,
       message: `Decorated ${enriched.length} tasks with icons, descriptions, and themes`,
