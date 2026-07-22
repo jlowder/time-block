@@ -1,0 +1,30 @@
+{
+  "name": "time-block",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test": "node tests/schedule.test.mjs"
+  },
+  "dependencies": {
+    "next": "16.2.10",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "ai": "7.0.34",
+    "@ai-sdk/openai-compatible": "3.0.14",
+    "zod": "3.25.76",
+    "tailwindcss": "^4",
+    "@tailwindcss/postcss": "^4"
+  },
+  "devDependencies": {
+    "typescript": "^5",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/node": "^20",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.10"
+  }
+}
