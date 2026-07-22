@@ -15,6 +15,7 @@ daily-schedule.json
 
 # AI service configuration (contains API key - use .llm-config.json.example as template)
 .llm-config.json
+.env.local
 
 # Imported schedule files (user uploads)
 *-import.json
