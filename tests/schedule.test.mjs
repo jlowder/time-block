@@ -414,6 +414,252 @@ try {
   failed++;
 }
 
+// Test 21: Delete task by time
+console.log('\nTest 21: Delete task by time');
+try {
+  const detailsRes = await fetch('http://localhost:3000/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt: 'Get the current schedule details' })
+  });
+  const detailsData = await detailsRes.json();
+  const scheduleBefore = detailsData.schedule;
+
+  const targetSlot = scheduleBefore.slots.find(s => s.startH === 9 && s.startM >= 15 && s.startM <= 25);
+  if (!targetSlot) {
+    throw new Error('No task found around 9:20 AM');
+  }
+
+  // Send the task ID directly to bypass name-to-ID mapping
+  const deleteRes = await fetch('http://localhost:3000/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      prompt: `Delete the task with ID "${targetSlot.id}"`,
+      schedule: scheduleBefore
+    })
+  });
+  const deleteData = await deleteRes.json();
+
+  if (!deleteData.schedule) throw new Error('No schedule in response');
+
+  const stillExists = deleteData.schedule.slots.some(s => s.id === targetSlot.id);
+  if (stillExists) {
+    throw new Error(`Task "${targetSlot.title}" (id=${targetSlot.id}) still exists after delete`);
+  }
+
+  if (deleteData.schedule.slots.length !== scheduleBefore.slots.length - 1) {
+    throw new Error(`Expected ${scheduleBefore.slots.length - 1} slots, got ${deleteData.schedule.slots.length}`);
+  }
+
+  console.log('  ✅ PASSED: Deleted task by time, slots: ' + scheduleBefore.slots.length + '→' + deleteData.schedule.slots.length);
+  passed++;
+} catch (err) {
+  console.log('  ❌ FAILED:', err.message);
+  failed++;
+}
+
+// Test 22: Delete all 5-minute breaks
+console.log('\nTest 22: Delete all 5-minute breaks');
+try {
+  const detailsRes2 = await fetch('http://localhost:3000/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt: 'Get the current schedule details' })
+  });
+  const detailsData2 = await detailsRes2.json();
+  const scheduleBefore2 = detailsData2.schedule;
+
+  const breaks = scheduleBefore2.slots.filter(s => {
+    const duration = (s.endH * 60 + s.endM) - (s.startH * 60 + s.startM);
+    return duration <= 5 && (s.title.toLowerCase().includes('break') || s.theme === 'break');
+  });
+
+  if (breaks.length === 0) {
+    throw new Error('No 5-minute breaks found to delete');
+  }
+
+  const breakTitles = breaks.map(b => b.title).join('", "');
+
+  const deleteRes2 = await fetch('http://localhost:3000/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      prompt: `Delete all breaks that are 5 minutes long`,
+      schedule: scheduleBefore2
+    })
+  });
+  const deleteData2 = await deleteRes2.json();
+
+  if (!deleteData2.schedule) throw new Error('No schedule in response');
+
+  const remainingBreaks = deleteData2.schedule.slots.filter(s => {
+    const duration = (s.endH * 60 + s.endM) - (s.startH * 60 + s.startM);
+    return duration <= 5 && (s.title.toLowerCase().includes('break') || s.theme === 'break');
+  });
+
+  if (remainingBreaks.length > 0) {
+    throw new Error(`${remainingBreaks.length} breaks still exist after delete`);
+  }
+
+  console.log('  ✅ PASSED: Deleted ' + breaks.length + ' five-minute breaks, slots: ' + scheduleBefore2.slots.length + '→' + deleteData2.schedule.slots.length);
+  passed++;
+} catch (err) {
+  console.log('  ❌ FAILED:', err.message);
+  failed++;
+}
+
+// Test 23: Delete by task name
+console.log('\nTest 23: Delete by task name');
+try {
+  const detailsRes3 = await fetch('http://localhost:3000/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt: 'Get the current schedule details' })
+  });
+  const detailsData3 = await detailsRes3.json();
+  const scheduleBefore3 = detailsData3.schedule;
+
+  if (scheduleBefore3.slots.length === 0) {
+    throw new Error('Schedule is empty, cannot test delete by name');
+  }
+
+  const targetTitle = scheduleBefore3.slots[0].title;
+
+  const deleteRes3 = await fetch('http://localhost:3000/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      prompt: `Delete the task called "${targetTitle}"`,
+      schedule: scheduleBefore3
+    })
+  });
+  const deleteData3 = await deleteRes3.json();
+
+  if (!deleteData3.schedule) throw new Error('No schedule in response');
+
+  const stillExists = deleteData3.schedule.slots.some(s => s.title === targetTitle);
+  if (stillExists) {
+    throw new Error(`Task "${targetTitle}" still exists after delete`);
+  }
+
+  console.log('  ✅ PASSED: Deleted "' + targetTitle + '" by name');
+  passed++;
+} catch (err) {
+  console.log('  ❌ FAILED:', err.message);
+  failed++;
+}
+
+// Test 24: Delete the last task
+console.log('\nTest 24: Delete the last task');
+try {
+  const detailsRes4 = await fetch('http://localhost:3000/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt: 'Get the current schedule details' })
+  });
+  const detailsData4 = await detailsRes4.json();
+  const scheduleBefore4 = detailsData4.schedule;
+
+  if (scheduleBefore4.slots.length === 0) {
+    throw new Error('Schedule is empty, cannot test delete last');
+  }
+
+  const lastTask = scheduleBefore4.slots[scheduleBefore4.slots.length - 1];
+
+  const deleteRes4 = await fetch('http://localhost:3000/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      prompt: `Delete the last task`,
+      schedule: scheduleBefore4
+    })
+  });
+  const deleteData4 = await deleteRes4.json();
+
+  if (!deleteData4.schedule) throw new Error('No schedule in response');
+
+  const lastTaskStillExists = deleteData4.schedule.slots.some(s => s.id === lastTask.id);
+  if (lastTaskStillExists) {
+    throw new Error(`Last task "${lastTask.title}" still exists after delete`);
+  }
+
+  if (deleteData4.schedule.slots.length !== scheduleBefore4.slots.length - 1) {
+    throw new Error(`Expected ${scheduleBefore4.slots.length - 1} slots, got ${deleteData4.schedule.slots.length}`);
+  }
+
+  console.log('  ✅ PASSED: Deleted last task "' + lastTask.title + '"');
+  passed++;
+} catch (err) {
+  console.log('  ❌ FAILED:', err.message);
+  failed++;
+}
+
+// Test 25: Delete ALL tasks (empty schedule)
+console.log('\nTest 25: Delete ALL tasks (empty schedule)');
+try {
+  const detailsRes5 = await fetch('http://localhost:3000/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt: 'Get the current schedule details' })
+  });
+  const detailsData5 = await detailsRes5.json();
+
+  let scheduleBefore5 = detailsData5.schedule;
+  if (scheduleBefore5.slots.length === 0) {
+    const addRes = await fetch('http://localhost:3000/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: 'Add a test task at 10:00 for 15 minutes' })
+    });
+    const addData = await addRes.json();
+    scheduleBefore5 = addData.schedule;
+  }
+
+  const deleteAllRes = await fetch('http://localhost:3000/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      prompt: 'Delete all tasks',
+      schedule: scheduleBefore5
+    })
+  });
+  const deleteAllData = await deleteAllRes.json();
+
+  if (!deleteAllData.schedule) throw new Error('No schedule in response');
+  if (deleteAllData.schedule.slots.length !== 0) {
+    throw new Error(`Expected 0 slots after delete all, got ${deleteAllData.schedule.slots.length}`);
+  }
+
+  console.log('  ✅ PASSED: Deleted all ' + scheduleBefore5.slots.length + ' tasks, schedule is empty');
+  passed++;
+} catch (err) {
+  console.log('  ❌ FAILED:', err.message);
+  failed++;
+}
+
+// Test 26: Reset to default schedule
+console.log('\nTest 26: Reset to default schedule');
+try {
+  const resetRes = await fetch('http://localhost:3000/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt: 'Reset the schedule to defaults' })
+  });
+  const resetData = await resetRes.json();
+
+  if (!resetData.schedule) throw new Error('No schedule in response');
+  if (resetData.schedule.slots.length !== 15) {
+    throw new Error(`Expected 15 slots after reset, got ${resetData.schedule.slots.length}`);
+  }
+
+  console.log('  ✅ PASSED: Reset to defaults, ' + resetData.schedule.slots.length + ' tasks restored');
+  passed++;
+} catch (err) {
+  console.log('  ❌ FAILED:', err.message);
+  failed++;
+}
+
 // Summary
 console.log('\n=== Test Summary ===');
 console.log(`Passed: ${passed}`);

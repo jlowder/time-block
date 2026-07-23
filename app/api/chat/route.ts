@@ -12,7 +12,9 @@ const SYSTEM_PROMPT = `You are a friendly, helpful AI assistant that manages a d
 ## Capabilities
 - Add new tasks to the schedule
 - Delete existing tasks
-- Delete all tasks and reset to defaults
+- Reset the schedule to default tasks
+- Delete ALL tasks (leaving an empty schedule)
+- Get schedule details (IDs, times, titles, themes)
 - Reorder tasks by arranging them into a new sequence
 - Decorate tasks by assigning icons, descriptions, and themes
 - Modify existing tasks (change title, duration, or start time)
@@ -21,7 +23,9 @@ const SYSTEM_PROMPT = `You are a friendly, helpful AI assistant that manages a d
 You have these tools available:
 - **addTask**: Add a new task. Takes title, duration in minutes, and optional start time (hour + minute).
 - **deleteTask**: Remove a task by its ID (e.g., 'slot-1').
-- **deleteAllTasks**: Reset the entire schedule to the default set of activities.
+- **resetTasks**: Reset the schedule back to the original default set of 15 tasks. Use this when the user says "reset schedule" or "restore defaults".
+- **deleteAllTasks**: Delete ALL tasks from the schedule, leaving an empty schedule. Use this ONLY when the user explicitly says "delete all tasks", "clear the schedule", or "remove everything". This is different from resetTasks.
+- **getScheduleDetails**: Get the current schedule details including all task IDs, titles, start/end times, durations, and themes. Call this FIRST before any delete or reorder operations to learn which tasks exist and their IDs.
 - **reorderTasks**: Reorder all tasks. Provide an array of task IDs in the desired order.
 - **decorateTasks**: Enrich all current tasks by assigning appropriate icons, descriptions, and themes. Use this when the user asks to "decorate", "add icons", "add descriptions", or "add themes" to their schedule.
 - **modifyTask**: Update an existing task. Specify the taskId and any of: title, durationMin, startH, startM.
@@ -31,6 +35,7 @@ You have these tools available:
 - Use 12-hour time format when mentioning times (e.g., "8:00 AM", "2:30 PM").
 - Tasks should have reasonable durations — typically 5 to 120 minutes.
 - Be conversational and helpful. Explain what you changed in natural language.
+- When deleting tasks, always call getScheduleDetails first to see the current tasks and their IDs.
 - When the user wants to decorate their schedule, call decorateTasks immediately — it will analyze all current task titles and assign appropriate icons, descriptions, and themes.
 - The schedule is always provided in the context. Use it to answer questions about current tasks.`;
 
@@ -113,12 +118,78 @@ const deleteTaskTool = tool({
   },
 });
 
-const deleteAllTasksTool = tool({
-  description: 'Reset the entire schedule to the default set of activities',
+// Tool: Get schedule details (LLM reads this to know slot IDs, times, titles)
+const getScheduleDetailsTool = tool({
+  description:
+    'Get the current schedule details including all task IDs, titles, start/end times, durations, and themes. Call this first before any delete or reorder operations to learn which tasks exist.',
   inputSchema: z.object({}),
   execute: async () => {
-    const reset = schedule.resetSchedule();
+    const currentSchedule = schedule.loadSchedule();
+    const details = currentSchedule.slots
+      .map((slot, index) => {
+        const durationMin =
+          (slot.endH * 60 + slot.endM) - (slot.startH * 60 + slot.startM);
+        const hours = Math.floor(durationMin / 60);
+        const mins = durationMin % 60;
+        const badge =
+          hours > 0
+            ? mins > 0
+              ? `${hours}h ${mins}min`
+              : `${hours}h`
+            : `${mins}min`;
+        return `Slot ${
+          index + 1
+        } [ID: ${slot.id}]: "${slot.title}" at ${schedule.formatTime12(
+          slot.startH,
+          slot.startM,
+        )} - ${schedule.formatTime12(slot.endH, slot.endM)} (${badge}, ${
+          slot.theme || 'none'
+        })${slot.desc ? ' - ' + slot.desc : ''}`;
+      })
+      .join('\n');
+
+    return {
+      success: true,
+      message: `Schedule has ${currentSchedule.slots.length} tasks:\n\n${details}`,
+      tasks: currentSchedule.slots.map((s) => ({
+        id: s.id,
+        title: s.title,
+        startH: s.startH,
+        startM: s.startM,
+        endH: s.endH,
+        endM: s.endM,
+        theme: s.theme,
+        durationMin: (s.endH * 60 + s.endM) - (s.startH * 60 + s.startM),
+      })),
+    };
+  },
+});
+
+// Tool: Reset to default schedule (renamed from deleteAllTasks)
+const resetTasksTool = tool({
+  description:
+    'Reset the schedule back to the original default set of tasks. This is NOT the same as deleting all tasks - it restores the default 15 tasks.',
+  inputSchema: z.object({}),
+  execute: async () => {
+    const fresh = schedule.resetSchedule();
+    schedule.setServerSchedule(fresh);
     return { success: true, message: 'Schedule reset to defaults' };
+  },
+});
+
+// Tool: Delete ALL tasks (actual deletion, leaves empty schedule)
+const deleteAllTasksTool = tool({
+  description:
+    'Delete ALL tasks from the schedule, leaving an empty schedule. This is different from resetTasks which restores the default tasks. Use this when the user says "delete all tasks" or "clear the schedule".',
+  inputSchema: z.object({}),
+  execute: async () => {
+    const currentSchedule = schedule.loadSchedule();
+    const emptySchedule: ScheduleData = {
+      slots: [],
+      dividers: currentSchedule.dividers,
+    };
+    schedule.setServerSchedule(emptySchedule);
+    return { success: true, message: 'All tasks deleted' };
   },
 });
 
@@ -317,10 +388,12 @@ const modifyTaskTool = tool({
 const tools = {
   addTask: addTaskTool,
   deleteTask: deleteTaskTool,
-  deleteAllTasks: deleteAllTasksTool,
   reorderTasks: reorderTasksTool,
   decorateTasks: decorateTasksTool,
   modifyTask: modifyTaskTool,
+  getScheduleDetails: getScheduleDetailsTool,
+  resetTasks: resetTasksTool,
+  deleteAllTasks: deleteAllTasksTool,
 };
 
 // ── POST handler ──────────────────────────────────────────────────────────────
