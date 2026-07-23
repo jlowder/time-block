@@ -163,9 +163,12 @@ const decorateTasksTool = tool({
     const prompt = `You are a schedule decorator. For each task below, assign an appropriate emoji icon, a brief description, and a theme. Respond with ONLY a JSON array (no markdown, no explanation) in this exact format:
 [{"id":"slot-1","icon":"🧩","desc":"A short description of this activity","theme":"study"}]
 
-Current tasks:
+Current tasks (with duration in minutes):
 ${currentSchedule.slots
-  .map((s) => `  - ${s.id}: "${s.title}"`)
+  .map((s) => {
+    const durMin = (s.endH * 60 + s.endM) - (s.startH * 60 + s.startM);
+    return `  - ${s.id}: "${s.title}" (${durMin} min)`;
+  })
   .join('\n')}
 
 Themes to choose from: study, break, exercise, leisure, special`;
@@ -208,11 +211,20 @@ Themes to choose from: study, break, exercise, leisure, special`;
     const updatedSlots = currentSchedule.slots.map((slot) => {
       const enrichment = enriched.find((e) => e.id === slot.id);
       if (!enrichment) return slot;
+
+      const durMin = (slot.endH * 60 + slot.endM) - (slot.startH * 60 + slot.startM);
+      const hours = Math.floor(durMin / 60);
+      const mins = durMin % 60;
+      const badge = hours > 0 ? (mins > 0 ? `${hours}h ${mins}min` : `${hours}h`) : `${mins}min`;
+      const badgeClass = `badge-${enrichment.theme}`;
+
       return {
         ...slot,
         icon: enrichment.icon,
         desc: enrichment.desc,
         theme: enrichment.theme as typeof slot.theme,
+        badge,
+        badgeClass,
       };
     });
 

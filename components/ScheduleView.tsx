@@ -7,6 +7,7 @@ interface ScheduleViewProps {
   dividers: SectionDivider[];
   activeSlotIndex: number;
   isEditMode: boolean;
+  isDecorating?: boolean;
   onSlotDragStart: (index: number) => void;
   onSlotDragOver: (index: number) => void;
   onSlotDragEnd: () => void;
@@ -51,6 +52,7 @@ export function ScheduleView({
   dividers,
   activeSlotIndex,
   isEditMode,
+  isDecorating = false,
   onSlotDragStart,
   onSlotDragOver,
   onSlotDragEnd,
@@ -86,6 +88,13 @@ export function ScheduleView({
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 pb-8">
+      {isDecorating && (
+        <div className="flex items-center justify-center gap-2 py-2 text-sm text-purple-300 animate-pulse">
+          <span>✨</span>
+          <span>Decorating schedule...</span>
+          <span>✨</span>
+        </div>
+      )}
       {renderList.map((item) => {
         if (item.type === 'divider') {
           return (

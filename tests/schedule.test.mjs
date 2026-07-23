@@ -268,6 +268,153 @@ try {
   failed++;
 }
 
+// Test 19: Random Task Insertion
+console.log('\nTest 19: Random Task Insertion (1-5 tasks at random positions)');
+try {
+  const loadRes = await fetch('http://localhost:3000/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt: 'Show me the current schedule' })
+  });
+  const loadData = await loadRes.json();
+  const initialSlotCount = loadData.schedule.slots.length;
+
+  const taskCount = Math.floor(Math.random() * 5) + 1;
+  console.log(`     Adding ${taskCount} tasks...`);
+
+  const addedTasks = [];
+  let currentSchedule = loadData.schedule;
+
+  for (let i = 0; i < taskCount; i++) {
+    const startH = 9 + Math.floor(Math.random() * 2);
+    const startM = Math.floor(Math.random() * 12) * 5;
+    const durationMin = [10, 15, 20, 30][Math.floor(Math.random() * 4)];
+    const taskTitle = `Test Task ${i + 1}`;
+
+    const addRes = await fetch('http://localhost:3000/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt: `Add a task called "${taskTitle}" at ${startH}:${String(startM).padStart(2, '0')} for ${durationMin} minutes`,
+        schedule: currentSchedule
+      })
+    });
+
+    const addData = await addRes.json();
+    if (!addData.schedule) throw new Error(`Add failed for task ${i + 1}`);
+
+    const newTask = addData.schedule.slots.find(s => s.title === taskTitle);
+    if (!newTask) throw new Error(`Task "${taskTitle}" not found in schedule`);
+
+    const actualDuration = (newTask.endH * 60 + newTask.endM) - (newTask.startH * 60 + newTask.startM);
+    if (actualDuration !== durationMin) {
+      throw new Error(`Task "${taskTitle}" has wrong duration: ${actualDuration}min (expected ${durationMin}min)`);
+    }
+
+    addedTasks.push({ title: taskTitle, startH, startM, durationMin, endH: newTask.endH, endM: newTask.endM });
+    currentSchedule = addData.schedule;
+  }
+
+  const finalSlotCount = currentSchedule.slots.length;
+  const expectedCount = initialSlotCount + taskCount;
+  if (finalSlotCount !== expectedCount) {
+    throw new Error(`Expected ${expectedCount} slots, got ${finalSlotCount}`);
+  }
+
+  console.log(`     Added ${taskCount} tasks: ${addedTasks.map(t => t.title).join(', ')}`);
+  console.log(`     Total slots: ${finalSlotCount} (was ${initialSlotCount})`);
+  passed++;
+} catch (err) {
+  console.log('  ❌ FAILED:', err.message);
+  failed++;
+}
+
+// Test 20: Random Task Reordering
+console.log('\nTest 20: Random Task Reordering');
+try {
+  const reorderRes = await fetch('http://localhost:3000/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt: 'Show me the current schedule' })
+  });
+  const reorderData = await reorderRes.json();
+
+  if (reorderData.schedule.slots.length < 3) {
+    throw new Error('Not enough tasks to reorder (need at least 3)');
+  }
+
+  const initialSlots = reorderData.schedule.slots.map(s => s.id);
+  const slotCount = initialSlots.length;
+
+  // Pick 2-3 random tasks to swap positions on
+  const numReorders = Math.min(2 + Math.floor(Math.random() * 2), Math.floor(slotCount / 2));
+  console.log(`     Reordering ${numReorders} tasks...`);
+
+  let currentSchedule = reorderData.schedule;
+
+  for (let i = 0; i < numReorders; i++) {
+    // Pick two different random indices
+    const idx1 = Math.floor(Math.random() * slotCount);
+    let idx2 = Math.floor(Math.random() * slotCount);
+    while (idx2 === idx1) {
+      idx2 = Math.floor(Math.random() * slotCount);
+    }
+
+    // Build a new taskIds array with the two tasks swapped
+    const taskIds = [...currentSchedule.slots.map(s => s.id)];
+    [taskIds[idx1], taskIds[idx2]] = [taskIds[idx2], taskIds[idx1]];
+
+    const task1Title = currentSchedule.slots[idx1].title;
+    const task2Title = currentSchedule.slots[idx2].title;
+
+    // Send the exact task IDs array to the LLM for the reorder tool
+    const reorderApiRes = await fetch('http://localhost:3000/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt: `Reorder tasks to: ${JSON.stringify(taskIds)}`,
+        schedule: currentSchedule
+      })
+    });
+
+    const reorderApiData = await reorderApiRes.json();
+    if (!reorderApiData.schedule) throw new Error('Reorder failed');
+
+    // Find where each task ended up
+    const newIdx1 = reorderApiData.schedule.slots.findIndex(s => s.id === taskIds[idx1]);
+    const newIdx2 = reorderApiData.schedule.slots.findIndex(s => s.id === taskIds[idx2]);
+
+    // Verify: taskIds[idx1] should be at idx1, taskIds[idx2] should be at idx2
+    const task1NewPos = reorderApiData.schedule.slots.findIndex(s => s.id === taskIds[idx1]);
+    const task2NewPos = reorderApiData.schedule.slots.findIndex(s => s.id === taskIds[idx2]);
+
+    // After reorder, taskIds[idx1] should be at position idx1, taskIds[idx2] at position idx2
+    if (task1NewPos !== idx1 || task2NewPos !== idx2) {
+      throw new Error(`Tasks not reordered correctly. "${task1Title}" (taskIds[${idx1}]) at ${task1NewPos} (expected ${idx1}). "${task2Title}" (taskIds[${idx2}]) at ${task2NewPos} (expected ${idx2}).`);
+    }
+
+    // Verify all tasks still exist
+    const newIds = reorderApiData.schedule.slots.map(s => s.id);
+    if (newIds.length !== slotCount) {
+      throw new Error(`Slot count changed: ${newIds.length} (expected ${slotCount})`);
+    }
+    for (const id of initialSlots) {
+      if (!newIds.includes(id)) {
+        throw new Error(`Task "${id}" disappeared after reorder`);
+      }
+    }
+
+    console.log(`     Reordered: "${task1Title}" → idx ${task1NewPos}, "${task2Title}" → idx ${task2NewPos}`);
+    currentSchedule = reorderApiData.schedule;
+  }
+
+  console.log(`     ${numReorders} reorders completed successfully`);
+  passed++;
+} catch (err) {
+  console.log('  ❌ FAILED:', err.message);
+  failed++;
+}
+
 // Summary
 console.log('\n=== Test Summary ===');
 console.log(`Passed: ${passed}`);

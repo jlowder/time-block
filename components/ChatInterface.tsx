@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 
 interface ChatInterfaceProps {
   isVisible: boolean;
+  scheduleData: ScheduleData;
   onScheduleChange?: (data: ScheduleData) => void;
 }
 
@@ -12,7 +13,7 @@ interface Message {
   toolOutputs?: ToolOutput[];
 }
 
-export function ChatInterface({ isVisible, onScheduleChange }: ChatInterfaceProps) {
+export function ChatInterface({ isVisible, scheduleData, onScheduleChange }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -61,7 +62,10 @@ export function ChatInterface({ isVisible, onScheduleChange }: ChatInterfaceProp
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: userText }),
+        body: JSON.stringify({
+          prompt: userText,
+          schedule: scheduleData,
+        }),
       });
 
       const data = await res.json();

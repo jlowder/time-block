@@ -57,6 +57,7 @@ export default function HomePage() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [activeSlotIndex, setActiveSlotIndex] = useState(-1);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [isDecorating, setIsDecorating] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(() => {
     try { return localStorage.getItem('soundEnabled') !== 'false'; } catch { return true; }
   });
@@ -232,12 +233,8 @@ export default function HomePage() {
   }, []);
 
   const handleReset = useCallback(() => {
-    if (
-      window.confirm('Reset schedule to defaults? This will erase all custom changes.')
-    ) {
-      const fresh = resetSchedule();
-      setScheduleData(fresh);
-    }
+    const fresh = resetSchedule();
+    setScheduleData(fresh);
   }, []);
 
   const toggleSound = useCallback(() => {
@@ -284,6 +281,9 @@ export default function HomePage() {
       prevEditModeRef.current = false; // Prevent re-triggering
 
       const decorateTasks = async () => {
+        setIsDecorating(true);
+        console.log('🎨 Starting decoration...');
+        console.log('Current schedule has', scheduleData.slots.length, 'slots');
         try {
           const response = await fetch('/api/chat', {
             method: 'POST',
@@ -294,13 +294,21 @@ export default function HomePage() {
             }),
           });
 
+          console.log('API response status:', response.status);
           const data = await response.json();
+          console.log('API response:', JSON.stringify(data).substring(0, 200));
+
           if (data.schedule && data.schedule.slots && data.schedule.slots.length > 0) {
+            console.log('Updating schedule with', data.schedule.slots.length, 'slots');
             setScheduleData(data.schedule);
             saveSchedule(data.schedule);
+          } else {
+            console.error('No schedule in response');
           }
-        } catch {
-          // Silently fail
+        } catch (err) {
+          console.error('Decoration failed:', err);
+        } finally {
+          setIsDecorating(false);
         }
       };
       decorateTasks();
@@ -340,6 +348,7 @@ export default function HomePage() {
             dividers={scheduleData.dividers}
             activeSlotIndex={activeSlotIndex}
             isEditMode={isEditMode}
+            isDecorating={isDecorating}
             onSlotDragStart={onSlotDragStart}
             onSlotDragOver={onSlotDragOver}
             onSlotDragEnd={onSlotDragEnd}
@@ -350,7 +359,7 @@ export default function HomePage() {
         {/* Chat Interface (only in edit mode) */}
         {isEditMode && (
           <div className="bg-gray-900/50 backdrop-blur-sm rounded-xl border border-white/5 p-2 sm:p-4 h-96">
-            <ChatInterface isVisible={isEditMode} onScheduleChange={onScheduleChange} />
+            <ChatInterface isVisible={isEditMode} scheduleData={scheduleData} onScheduleChange={onScheduleChange} />
           </div>
         )}
       </main>
