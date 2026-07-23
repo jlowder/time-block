@@ -321,8 +321,7 @@ try {
     throw new Error(`Expected ${expectedCount} slots, got ${finalSlotCount}`);
   }
 
-  console.log(`     Added ${taskCount} tasks: ${addedTasks.map(t => t.title).join(', ')}`);
-  console.log(`     Total slots: ${finalSlotCount} (was ${initialSlotCount})`);
+  console.log('  ✅ PASSED: Inserted', taskCount, 'tasks, total slots:', finalSlotCount);
   passed++;
 } catch (err) {
   console.log('  ❌ FAILED:', err.message);
@@ -408,7 +407,7 @@ try {
     currentSchedule = reorderApiData.schedule;
   }
 
-  console.log(`     ${numReorders} reorders completed successfully`);
+  console.log('  ✅ PASSED: Reordered', numReorders, 'tasks successfully');
   passed++;
 } catch (err) {
   console.log('  ❌ FAILED:', err.message);
