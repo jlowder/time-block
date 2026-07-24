@@ -5,7 +5,6 @@ interface ToolbarProps {
   onToggleMode: () => void;
   onExport: () => void;
   onImport: (content: string) => void;
-  onReset: () => void;
   soundEnabled: boolean;
   onToggleSound: () => void;
 }
@@ -15,7 +14,6 @@ export function Toolbar({
   onToggleMode,
   onExport,
   onImport,
-  onReset,
   soundEnabled,
   onToggleSound,
 }: ToolbarProps) {
@@ -38,12 +36,6 @@ export function Toolbar({
       reader.readAsText(file);
     }
     e.target.value = ''; // Reset for re-import
-  };
-
-  const handleReset = () => {
-    if (window.confirm('Reset schedule to defaults? This will erase all custom changes.')) {
-      onReset();
-    }
   };
 
   return (
@@ -93,13 +85,6 @@ export function Toolbar({
         📤 Export
       </button>
 
-      {/* Reset */}
-      <button
-        onClick={handleReset}
-        className="flex items-center gap-1.5 rounded-lg px-2 py-1 sm:px-3 sm:py-1.5 text-xs font-medium text-red-300 border border-red-800 bg-red-900/30 hover:bg-red-900/50 transition-colors"
-      >
-        🔄 Reset
-      </button>
     </div>
   );
 }
