@@ -57,16 +57,31 @@ export function Toolbar({
         {soundEnabled ? '🔊 Sound' : '🔇 Muted'}
       </button>
 
-      {/* Edit/View Toggle */}
+      {/* Edit/View Toggle — prominent toggle switch */}
       <button
         onClick={onToggleMode}
-        className={`flex items-center gap-1.5 rounded-lg px-2 py-1 sm:px-3 sm:py-1.5 text-xs font-medium border transition-colors ${
-          isEditMode
-            ? 'bg-green-900/50 text-green-300 border-green-700'
-            : 'bg-blue-900/50 text-blue-300 border-blue-700'
+        type="button"
+        className={`relative flex items-center w-40 h-10 rounded-full p-1 transition-colors duration-300 cursor-pointer select-none ${
+          isEditMode ? 'bg-gradient-to-r from-emerald-600 to-emerald-500' : 'bg-gradient-to-r from-blue-600 to-blue-500'
         }`}
       >
-        {isEditMode ? '✏️ Edit Mode' : '👁️ View Mode'}
+        {/* Sliding white pill */}
+        <span
+          className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-full shadow-lg transition-all duration-300 ease-in-out bg-white/90 ${
+            isEditMode ? 'right-1' : 'left-1'
+          }`}
+        />
+        {/* Labels */}
+        <span className={`relative z-10 flex-1 text-center text-sm font-bold transition-colors duration-300 ${
+          isEditMode ? 'text-gray-700' : 'text-gray-200/70'
+        }`}>
+          👁️ View
+        </span>
+        <span className={`relative z-10 flex-1 text-center text-sm font-bold transition-colors duration-300 ${
+          isEditMode ? 'text-gray-700' : 'text-gray-200/70'
+        }`}>
+          ✏️ Edit
+        </span>
       </button>
 
       {/* Import */}
