@@ -346,23 +346,29 @@ const modifyTaskTool = tool({
       slot.startM = startM ?? slot.startM;
     }
 
-    const currentDuration =
-      slot.endH * 60 + slot.endM - (slot.startH * 60 + slot.startM);
-    if (durationMin !== undefined && durationMin !== currentDuration) {
-      slot.endH = 0;
-      slot.endM = 0;
-      const updatedSlots = [...currentSchedule.slots];
-      updatedSlots[slotIndex] = slot;
-      const recalculated = schedule.recalculateTimes(updatedSlots);
-      const updatedSchedule: ScheduleData = {
-        ...currentSchedule,
-        slots: recalculated,
-      };
-      schedule.saveSchedule(updatedSchedule);
-      return {
-        success: true,
-        message: `Modified "${slot.title}" — duration changed to ${durationMin} minutes`,
-      };
+    if (durationMin !== undefined) {
+      const currentDuration = slot.endH * 60 + slot.endM - (slot.startH * 60 + slot.startM);
+      if (durationMin !== currentDuration) {
+        // Directly calculate new end time from start + duration
+        const startTotal = slot.startH * 60 + slot.startM;
+        const endWrapped = (startTotal + durationMin) % 1440;
+        slot.endH = Math.floor(endWrapped / 60);
+        slot.endM = endWrapped % 60;
+
+        // Recalculate subsequent slots to maintain continuous flow
+        const updatedSlots = [...currentSchedule.slots];
+        updatedSlots[slotIndex] = slot;
+        const recalculated = schedule.recalculateTimes(updatedSlots);
+        const updatedSchedule: ScheduleData = {
+          ...currentSchedule,
+          slots: recalculated,
+        };
+        schedule.saveSchedule(updatedSchedule);
+        return {
+          success: true,
+          message: `Modified "${slot.title}" — duration changed to ${durationMin} minutes`,
+        };
+      }
     }
 
     // Recalculate end times since start may have shifted

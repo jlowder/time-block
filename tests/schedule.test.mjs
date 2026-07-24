@@ -660,6 +660,60 @@ try {
   failed++;
 }
 
+// Test 27: Edit task to odd duration (not multiple of 5)
+console.log('\nTest 27: Edit task to odd duration');
+try {
+  const detailsRes = await fetch('http://localhost:3000/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt: 'Get the current schedule details' })
+  });
+  const detailsData = await detailsRes.json();
+  const scheduleBefore = detailsData.schedule;
+
+  if (scheduleBefore.slots.length === 0) {
+    throw new Error('Schedule is empty, cannot test modify task');
+  }
+
+  const targetSlot = scheduleBefore.slots[0];
+  const originalDuration = (targetSlot.endH * 60 + targetSlot.endM) - (targetSlot.startH * 60 + targetSlot.startM);
+
+  const oddDurations = [7, 13, 17, 23, 37];
+  const newDuration = oddDurations[Math.floor(Math.random() * oddDurations.length)];
+
+  const modifyRes = await fetch('http://localhost:3000/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      prompt: `Change the task called "${targetSlot.title}" to be ${newDuration} minutes long`,
+      schedule: scheduleBefore
+    })
+  });
+  const modifyData = await modifyRes.json();
+
+  if (!modifyData.schedule) throw new Error('No schedule in response');
+
+  const modifiedSlot = modifyData.schedule.slots.find(s => s.id === targetSlot.id);
+  if (!modifiedSlot) {
+    throw new Error(`Task "${targetSlot.title}" not found in modified schedule`);
+  }
+
+  const actualDuration = (modifiedSlot.endH * 60 + modifiedSlot.endM) - (modifiedSlot.startH * 60 + modifiedSlot.startM);
+  if (actualDuration !== newDuration) {
+    throw new Error(`Expected ${newDuration} min, got ${actualDuration} min`);
+  }
+
+  if (actualDuration % 5 === 0) {
+    throw new Error(`Duration ${actualDuration} is a multiple of 5, test requires odd duration`);
+  }
+
+  console.log('  ✅ PASSED: Modified "' + targetSlot.title + '" to ' + newDuration + ' min (was ' + originalDuration + ' min)');
+  passed++;
+} catch (err) {
+  console.log('  ❌ FAILED:', err.message);
+  failed++;
+}
+
 // Summary
 console.log('\n=== Test Summary ===');
 console.log(`Passed: ${passed}`);
