@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { loadSchedule, saveSchedule, exportSchedule, getDefaultSchedule } from '@/lib/schedule';
+import { loadSchedule, saveSchedule, exportSchedule, getDefaultSchedule, playChime } from '@/lib/schedule';
 import { ScheduleView } from '@/components/ScheduleView';
 import { ChatInterface } from '@/components/ChatInterface';
 import { StatusBar } from '@/components/StatusBar';
@@ -224,6 +224,14 @@ export default function HomePage() {
     setSoundEnabled((prev) => !prev);
   }, []);
 
+  const handleToggleSound = useCallback(() => {
+    setSoundEnabled((prev) => {
+      const next = !prev;
+      if (next) playChime();
+      return next;
+    });
+  }, []);
+
   const onScheduleChange = useCallback((data: ScheduleData) => {
     setScheduleData(data);
     saveSchedule(data);
@@ -289,7 +297,8 @@ export default function HomePage() {
           onExport={handleExport}
           onImport={handleImport}
           soundEnabled={soundEnabled}
-          onToggleSound={toggleSound}
+          onToggleSound={handleToggleSound}
+          playChime={playChime}
         />
       </div>
 
