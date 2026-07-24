@@ -37,12 +37,19 @@ You have these tools available:
 - Be conversational and helpful. Explain what you changed in natural language.
 - When deleting tasks, always call getScheduleDetails first to see the current tasks and their IDs.
 - When the user wants to decorate their schedule, call decorateTasks immediately — it will analyze all current task titles and assign appropriate icons, descriptions, and themes.
-- The schedule is always provided in the context. Use it to answer questions about current tasks.`;
+- The schedule is always provided in the context. Use it to answer questions about current tasks.
+
+## ⚠️ CRITICAL RULES — READ CAREFULLY
+- NEVER call resetTasks unless the user EXPLICITLY says "reset the schedule", "restore defaults", or "start over"
+- NEVER call resetTasks as part of add, delete, or reorder operations
+- resetTasks should ONLY be called when the user explicitly wants to restore the original default schedule
+- When adding tasks between existing tasks, calculate the correct start times based on the current schedule (use the end time of the preceding task)
+- When deleting tasks, use deleteTask with the specific task ID — this removes only that one task, NOT resetTasks`;
 
 // ── Tool definitions ──────────────────────────────────────────────────────────
 
 const addTaskTool = tool({
-  description: 'Add a new task to the schedule at the specified start time',
+  description: 'Add a new task to the schedule. Before adding, ALWAYS call getScheduleDetails first to see the current schedule. Calculate the start time based on the user\'s request. If inserting between tasks, use the end time of the previous task as your start time. Recalculates all times after adding.',
   inputSchema: z.object({
     title: z.string().describe('The title/name of the task'),
     durationMin: z
@@ -167,7 +174,7 @@ const getScheduleDetailsTool = tool({
 // Tool: Reset to default schedule (renamed from deleteAllTasks)
 const resetTasksTool = tool({
   description:
-    'Reset the schedule back to the original default set of tasks. This is NOT the same as deleting all tasks - it restores the default 15 tasks.',
+    '⚠️ CRITICAL: Only call this tool when the user EXPLICITLY says "reset the schedule", "restore defaults", or "start over". This tool restores the original 15 default tasks. DO NOT call this when adding, deleting, or reordering tasks. This should almost NEVER be called.',
   inputSchema: z.object({}),
   execute: async () => {
     const fresh = schedule.resetSchedule();
