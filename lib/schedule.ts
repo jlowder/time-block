@@ -1,4 +1,4 @@
-import { ScheduleData, TimeBlock, SectionDivider } from './types';
+import { ScheduleData, TimeBlock } from './types';
 
 // ── Default 15-slot schedule ──────────────────────────────────────────────────
 
@@ -200,11 +200,6 @@ const defaultSchedule: ScheduleData = {
       badgeClass: 'badge-exercise',
     },
   ],
-  dividers: [
-    { index: 0, label: 'Morning Warm-up' },
-    { index: 2, label: 'Study Block 1' },
-    { index: 14, label: 'Wind Down' },
-  ],
 };
 
 // ── Persistence ───────────────────────────────────────────────────────────────
@@ -369,11 +364,4 @@ export function moveSlot(slots: TimeBlock[], fromIndex: number, toIndex: number)
   const [moved] = copy.splice(fromIndex, 1);
   copy.splice(toIndex, 0, moved);
   return recalculateTimes(copy);
-}
-
-export function recalculateDividerIndices(dividers: SectionDivider[], slots: TimeBlock[]): SectionDivider[] {
-  return dividers.map((d) => ({
-    ...d,
-    index: Math.min(d.index, slots.length - 1),
-  }));
 }

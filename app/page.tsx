@@ -20,13 +20,8 @@ interface TimeBlock {
   badge?: string;
   badgeClass?: string;
 }
-interface SectionDivider {
-  index: number;
-  label: string;
-}
 interface ScheduleData {
   slots: TimeBlock[];
-  dividers: SectionDivider[];
 }
 
 function getActiveSlotIndex(slots: TimeBlock[] | undefined): number {
@@ -195,19 +190,12 @@ export default function HomePage() {
         draggedIndex,
         overIndex,
       );
-      const updatedDividers = scheduleData.dividers.map((d) => ({
-        ...d,
-        index: Math.min(d.index, newSlots.length - 1),
-      }));
-      const newSchedule = {
-        slots: newSlots,
-        dividers: updatedDividers,
-      };
+      const newSchedule = { slots: newSlots };
       saveSchedule(newSchedule);
       setScheduleData(newSchedule);
       setDraggedIndex(overIndex);
     },
-    [draggedIndex, scheduleData.slots, scheduleData.dividers],
+    [draggedIndex, scheduleData.slots],
   );
 
   const onSlotDragEnd = useCallback(() => {
@@ -245,34 +233,6 @@ export default function HomePage() {
     setScheduleData(data);
     saveSchedule(data);
   }, []);
-
-  const onSlotDragOverDivider = useCallback(
-    (renderListIndex: number, dividerIndex: number) => {
-      if (draggedIndex === null) return;
-
-      const targetSlotIndex = Math.min(dividerIndex, scheduleData.slots.length);
-
-      const newSlots = recalculateSlots(scheduleData.slots, draggedIndex, targetSlotIndex);
-
-      // Recalculate divider indices
-      const newDividers = scheduleData.dividers.map((d) => {
-        let newIndex = d.index;
-        if (d.index > draggedIndex && d.index >= targetSlotIndex) {
-          newIndex = d.index;
-        } else if (d.index >= targetSlotIndex && d.index < draggedIndex) {
-          newIndex = d.index + 1;
-        } else if (d.index >= draggedIndex && d.index < targetSlotIndex) {
-          newIndex = d.index;
-        }
-        return { ...d, index: newIndex };
-      });
-
-      setScheduleData({ slots: newSlots, dividers: newDividers });
-      saveSchedule({ slots: newSlots, dividers: newDividers });
-      setDraggedIndex(null);
-    },
-    [draggedIndex, scheduleData],
-  );
 
   // Decorate effect - fires ONLY when transitioning from edit mode ON → OFF
   useEffect(() => {
@@ -345,14 +305,12 @@ export default function HomePage() {
         <div className="bg-gray-900/50 backdrop-blur-sm rounded-xl border border-white/5 p-2 sm:p-4 mb-6">
           <ScheduleView
             slots={scheduleData.slots}
-            dividers={scheduleData.dividers}
             activeSlotIndex={activeSlotIndex}
             isEditMode={isEditMode}
             isDecorating={isDecorating}
             onSlotDragStart={onSlotDragStart}
             onSlotDragOver={onSlotDragOver}
             onSlotDragEnd={onSlotDragEnd}
-            onSlotDragOverDivider={onSlotDragOverDivider}
           />
         </div>
 

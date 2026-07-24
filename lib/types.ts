@@ -14,14 +14,8 @@ export interface TimeBlock {
   badgeClass?: string;
 }
 
-export interface SectionDivider {
-  index: number;
-  label: string;
-}
-
 export interface ScheduleData {
   slots: TimeBlock[];
-  dividers: SectionDivider[];
 }
 
 export interface ToolOutput {

@@ -13,8 +13,8 @@ The Interactive Daily Schedule is a web-based application for creating, managing
 | Operation | Description |
 |-----------|-------------|
 | **Load Default** | Initialize schedule with the predefined set of 15 time-blocked activities (Morning Warm-up through Wind Down). |
-| **Load from localStorage** | On app load, retrieve saved schedule and section dividers from browser storage. If invalid or missing, fall back to default. |
-| **Save to localStorage** | Persist all schedule slots and section dividers to browser storage after any modification. |
+| **Load from localStorage** | On app load, retrieve saved schedule from browser storage. If invalid or missing, fall back to default. |
+| **Save to localStorage** | Persist all schedule slots to browser storage after any modification. |
 | **Reset to Default** | Discard all custom changes and restore the original 15-slot schedule. |
 
 ### 2. Time-Block Structure
@@ -39,17 +39,6 @@ Each schedule slot (`time-block`) contains the following properties:
 `duration = (endH × 60 + endM) − (startH × 60 + startM)` minutes  
 Formatted as: `Xh Ymin`, `Xh`, or `Ymin`.
 
-### 3. Section Dividers
-
-Section dividers organize the schedule into logical groups:
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `index` | integer | Zero-based index where the divider appears before that slot |
-| `label` | string | Divider text (e.g., "Study Block 1", "Morning Warm-up") |
-
----
-
 ### 4. Edit Mode Operations
 
 **Toggle Edit Mode**
@@ -58,10 +47,6 @@ Section dividers organize the schedule into logical groups:
 - While edit mode is active, cards are draggable and can be re-ordered by drag and drop.
 - Dropping on another card shifts the dragged card to that position.
 - All intermediate slots shift accordingly.
-- Section divider indices are updated based on position changes.
-- Cards can be dropped onto section dividers.
-- The dropped card is inserted *before* the divider's current index.
-- Section divider indices are updated appropriately.
 - Call `recalculateTimes()` to ensure continuous time progression.
 - The first task retains its original start time.
 - Each subsequent task starts when the previous one ends (duration preserved).
@@ -124,14 +109,14 @@ Section dividers organize the schedule into logical groups:
 ### 10. Import / Export
 
 **Export**
-- Generate JSON file with `slots` and `dividers` arrays.
+- Generate JSON file with `slots` array.
 - Filename: `daily-schedule.json`
 - Triggers browser download.
 
 **Import**
 - Accepts `.json` or `.txt` files.
 - Validates presence of `slots` array.
-- Replaces current schedule (dividers default if missing).
+- Replaces current schedule.
 - Triggers re-render and saves to localStorage.
 
 ### 11. UI Updates
@@ -200,7 +185,7 @@ window.llmService.setConfig({
 
 | Storage Key | Contents | Type |
 |-------------|----------|------|
-| `dailySchedule` | `{"slots": [...], "dividers": [...]}` | JSON string |
+| `dailySchedule` | `{"slots": [...]}` | JSON string |
 
 ---
 
@@ -209,7 +194,6 @@ window.llmService.setConfig({
 | Variable | Scope | Purpose |
 |----------|-------|---------|
 | `scheduleSlots` | Module | Current array of time-block objects |
-| `sectionDividers` | Module | Array of divider objects |
 | `isEditMode` | Module | Whether inline editing is active |
 | `editingSlotId` | Module | ID of slot currently being edited (not actively used) |
 | `lastActiveSlot` | Module | Index of previously active slot (for chime trigger) |

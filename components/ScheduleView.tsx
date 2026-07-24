@@ -1,64 +1,25 @@
-import { useState } from 'react';
-import type { TimeBlock, SectionDivider } from '@/lib/types';
+import type { TimeBlock } from '@/lib/types';
 import { ScheduleCard } from './ScheduleCard';
 
 interface ScheduleViewProps {
   slots: TimeBlock[];
-  dividers: SectionDivider[];
   activeSlotIndex: number;
   isEditMode: boolean;
   isDecorating?: boolean;
   onSlotDragStart: (index: number) => void;
   onSlotDragOver: (index: number) => void;
   onSlotDragEnd: () => void;
-  onSlotDragOverDivider: (renderListIndex: number, dividerIndex: number) => void;
-}
-
-type RenderItem = 
-  | { type: 'divider'; label: string; index: number }
-  | { type: 'slot'; slot: TimeBlock; index: number };
-
-function buildRenderList(slots: TimeBlock[], dividers: SectionDivider[]): RenderItem[] {
-  const items: RenderItem[] = [];
-  // Trailing dividers (index >= slots.length - 1) render AFTER the last slot
-  const trailingIndices = new Set<number>();
-  for (const d of dividers) {
-    if (d.index >= slots.length - 1) {
-      trailingIndices.add(d.index);
-    }
-  }
-
-  for (let i = 0; i < slots.length; i++) {
-    // Insert non-trailing dividers before this slot
-    const dividersHere = dividers.filter((d) => d.index === i && !trailingIndices.has(i));
-    for (const d of dividersHere) {
-      items.push({ type: 'divider', label: d.label, index: d.index });
-    }
-    items.push({ type: 'slot', slot: slots[i], index: i });
-  }
-
-  // Render trailing dividers at the end
-  for (const d of dividers) {
-    if (trailingIndices.has(d.index)) {
-      items.push({ type: 'divider', label: d.label, index: d.index });
-    }
-  }
-
-  return items;
 }
 
 export function ScheduleView({
   slots,
-  dividers,
   activeSlotIndex,
   isEditMode,
   isDecorating = false,
   onSlotDragStart,
   onSlotDragOver,
   onSlotDragEnd,
-  onSlotDragOverDivider,
 }: ScheduleViewProps) {
-  const [dragOverDividerIndex, setDragOverDividerIndex] = useState<number | null>(null);
   if (!slots || slots.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-gray-500">
@@ -84,8 +45,6 @@ export function ScheduleView({
     );
   }
 
-  const renderList = buildRenderList(slots, dividers);
-
   return (
     <div className="mx-auto w-full max-w-2xl px-4 pb-8">
       {isDecorating && (
@@ -95,44 +54,19 @@ export function ScheduleView({
           <span>✨</span>
         </div>
       )}
-      {renderList.map((item) => {
-        if (item.type === 'divider') {
-          return (
-            <div
-              key={`divider-${item.index}`}
-              className={`section-divider ${dragOverDividerIndex === item.index ? 'drag-over' : ''}`}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setDragOverDividerIndex(item.index);
-              }}
-              onDragLeave={() => setDragOverDividerIndex(null)}
-              onDrop={(e) => {
-                e.preventDefault();
-                setDragOverDividerIndex(null);
-                onSlotDragOverDivider(item.index, item.index);
-              }}
-            >
-              <p className="text-center text-sm tracking-widest uppercase text-gray-400 font-medium">
-                {item.label}
-              </p>
-            </div>
-          );
-        }
-
-        return (
-          <ScheduleCard
-            key={item.slot.id}
-            block={item.slot}
-            index={item.index}
-            isActive={item.index === activeSlotIndex}
-            isEditMode={isEditMode}
-            activeSlotIndex={activeSlotIndex}
-            onStartDrag={onSlotDragStart}
-            onDragOver={onSlotDragOver}
-            onDragEnd={onSlotDragEnd}
-          />
-        );
-      })}
+      {slots.map((slot, index) => (
+        <ScheduleCard
+          key={slot.id}
+          block={slot}
+          index={index}
+          isActive={index === activeSlotIndex}
+          isEditMode={isEditMode}
+          activeSlotIndex={activeSlotIndex}
+          onStartDrag={onSlotDragStart}
+          onDragOver={onSlotDragOver}
+          onDragEnd={onSlotDragEnd}
+        />
+      ))}
     </div>
   );
 }

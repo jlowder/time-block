@@ -111,7 +111,6 @@ const deleteTaskTool = tool({
     const updatedSchedule: ScheduleData = {
       ...currentSchedule,
       slots: recalculated,
-      dividers: schedule.recalculateDividerIndices(currentSchedule.dividers, recalculated),
     };
     schedule.saveSchedule(updatedSchedule);
     return { success: true, message: `Deleted task "${taskId}"` };
@@ -183,11 +182,7 @@ const deleteAllTasksTool = tool({
     'Delete ALL tasks from the schedule, leaving an empty schedule. This is different from resetTasks which restores the default tasks. Use this when the user says "delete all tasks" or "clear the schedule".',
   inputSchema: z.object({}),
   execute: async () => {
-    const currentSchedule = schedule.loadSchedule();
-    const emptySchedule: ScheduleData = {
-      slots: [],
-      dividers: currentSchedule.dividers,
-    };
+    const emptySchedule: ScheduleData = { slots: [] };
     schedule.setServerSchedule(emptySchedule);
     return { success: true, message: 'All tasks deleted' };
   },
@@ -355,10 +350,6 @@ const modifyTaskTool = tool({
       const updatedSchedule: ScheduleData = {
         ...currentSchedule,
         slots: recalculated,
-        dividers: schedule.recalculateDividerIndices(
-          currentSchedule.dividers,
-          recalculated,
-        ),
       };
       schedule.saveSchedule(updatedSchedule);
       return {
@@ -372,10 +363,6 @@ const modifyTaskTool = tool({
     const updatedSchedule: ScheduleData = {
       ...currentSchedule,
       slots: recalculated,
-      dividers: schedule.recalculateDividerIndices(
-        currentSchedule.dividers,
-        recalculated,
-      ),
     };
     schedule.saveSchedule(updatedSchedule);
     return {
