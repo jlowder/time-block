@@ -74,15 +74,17 @@ export default function HomePage() {
     try { localStorage.setItem('soundEnabled', String(soundEnabled)); } catch {}
   }, [soundEnabled]);
 
-  // Calculate active slot when schedule changes
+  // Calculate active slot when schedule changes (view mode only)
   useEffect(() => {
+    if (isEditMode) return;
     if (!scheduleData || !scheduleData.slots) return;
     const index = calcActiveSlotIndex(scheduleData.slots);
     setActiveSlotIndex(index);
-  }, [scheduleData.slots]);
+  }, [scheduleData.slots, isEditMode]);
 
-  // Audio chime when active slot changes
+  // Audio chime when active slot changes (view mode only)
   useEffect(() => {
+    if (isEditMode) return;
     if (
       prevActiveIndexRef.current !== activeSlotIndex &&
       activeSlotIndex >= 0

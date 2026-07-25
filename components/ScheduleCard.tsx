@@ -47,7 +47,8 @@ export function ScheduleCard({
   const styles = getThemeStyles(block.theme);
   const timeRange = `${formatTime12(block.startH, block.startM)} – ${formatTime12(block.endH, block.endM)}`;
   const isPast = !isActive && index < activeSlotIndex;
-  const opacity = isActive || !isPast ? 1 : 0.35;
+  // Only dim past tasks in view mode; in edit mode all tasks at full opacity
+  const opacity = isEditMode ? 1 : (isActive || !isPast ? 1 : 0.35);
   const isDragging = false;
 
   return (
