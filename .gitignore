@@ -9,6 +9,7 @@ out/
 node_modules/
 
 # Environment files (covers .env.local, .env.development.local, etc.)
+.env
 .env*.local
 
 # Coverage reports

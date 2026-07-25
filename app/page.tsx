@@ -36,11 +36,10 @@ function getActiveSlotIndex(slots: TimeBlock[] | undefined): number {
     const endMin = slot.endH * 60 + slot.endM;
 
     if (currentMin >= startMin && currentMin < endMin) {
-      return i; // Slot is currently active
+      return i;
     }
   }
 
-  // If current time is past all slots, return -1 (no active slot)
   return -1;
 }
 
@@ -63,18 +62,18 @@ export default function HomePage() {
   const prevActiveIndexRef = useRef<number>(-1);
   const prevEditModeRef = useRef(isEditMode);
 
-  // Load schedule from localStorage on mount (client-side only)
+  // Load schedule from localStorage on mount
   useEffect(() => {
     const stored = loadSchedule();
     setScheduleData(stored);
   }, []);
 
-  // Persist soundEnabled to localStorage
+  // Persist soundEnabled
   useEffect(() => {
     try { localStorage.setItem('soundEnabled', String(soundEnabled)); } catch {}
   }, [soundEnabled]);
 
-  // Calculate active slot when schedule changes (view mode only)
+  // Calculate active slot
   useEffect(() => {
     if (isEditMode) return;
     if (!scheduleData || !scheduleData.slots) return;
@@ -82,7 +81,7 @@ export default function HomePage() {
     setActiveSlotIndex(index);
   }, [scheduleData.slots, isEditMode]);
 
-  // Audio chime when active slot changes (view mode only)
+  // Audio chime when active slot changes
   useEffect(() => {
     if (isEditMode) return;
     if (
@@ -99,10 +98,9 @@ export default function HomePage() {
         const ctx = audioCtxRef.current;
         if (ctx.state === 'suspended') ctx.resume();
 
-        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        const notes = [523.25, 659.25, 783.99, 1046.50];
         const now = ctx.currentTime;
 
-        // Play 4-note ascending chime
         notes.forEach((freq, i) => {
           const osc = ctx.createOscillator();
           const gain = ctx.createGain();
@@ -122,14 +120,13 @@ export default function HomePage() {
           osc.stop(noteEnd + 0.01);
         });
 
-        // Play bell tone after the chime
         const bellStart = now + notes.length * 0.15;
         const bellOsc = ctx.createOscillator();
         const bellGain = ctx.createGain();
         bellOsc.connect(bellGain);
         bellGain.connect(ctx.destination);
         bellOsc.type = 'sine';
-        bellOsc.frequency.value = 880; // A5 bell tone
+        bellOsc.frequency.value = 880;
 
         const bellEnd = bellStart + 0.5;
         bellGain.gain.setValueAtTime(0, bellStart);
@@ -154,8 +151,6 @@ export default function HomePage() {
     if (slots.length <= 1) return slots;
 
     const copy = slots.map((s) => ({ ...s }));
-
-    // ACTUALLY REORDER: move slot from fromIndex to toIndex
     const [moved] = copy.splice(fromIndex, 1);
     copy.splice(toIndex, 0, moved);
 
@@ -241,16 +236,13 @@ export default function HomePage() {
     saveSchedule(data);
   }, []);
 
-  // Decorate effect - fires ONLY when transitioning from edit mode ON → OFF
+  // Decorate effect
   useEffect(() => {
     if (prevEditModeRef.current && !isEditMode) {
-      // We just exited edit mode — trigger decorate
-      prevEditModeRef.current = false; // Prevent re-triggering
+      prevEditModeRef.current = false;
 
       const decorateTasks = async () => {
         setIsDecorating(true);
-        console.log('🎨 Starting decoration...');
-        console.log('Current schedule has', scheduleData.slots.length, 'slots');
         try {
           const response = await fetch('/api/chat', {
             method: 'POST',
@@ -261,16 +253,11 @@ export default function HomePage() {
             }),
           });
 
-          console.log('API response status:', response.status);
           const data = await response.json();
-          console.log('API response:', JSON.stringify(data).substring(0, 200));
 
           if (data.schedule && data.schedule.slots && data.schedule.slots.length > 0) {
-            console.log('Updating schedule with', data.schedule.slots.length, 'slots');
             setScheduleData(data.schedule);
             saveSchedule(data.schedule);
-          } else {
-            console.error('No schedule in response');
           }
         } catch (err) {
           console.error('Decoration failed:', err);
@@ -280,21 +267,21 @@ export default function HomePage() {
       };
       decorateTasks();
     }
-    prevEditModeRef.current = isEditMode; // Sync ref on every render
-  }, [isEditMode]); // ONLY depends on isEditMode
+    prevEditModeRef.current = isEditMode;
+  }, [isEditMode]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0f0c29] via-[#302b63] to-[#24243e]">
+    <div className="min-h-screen flex flex-col overflow-hidden bg-[var(--bg-page)]">
       {/* Header */}
-      <header className="text-center py-4 px-2 sm:py-6 sm:px-4">
-        <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 mb-1">
-          📅 Time Block Schedule
+      <header className="pt-8 pb-4 px-4 text-center">
+        <h1 className="text-[42px] leading-tight font-bold tracking-tight text-[var(--text-primary)]">
+          Time Block
         </h1>
-        <p className="text-gray-400 text-sm">Your daily productive schedule</p>
+        <p className="text-sm text-[var(--text-muted)] mt-1">Your daily schedule</p>
       </header>
 
       {/* Toolbar */}
-      <div className="flex justify-center mb-4">
+      <div className="flex justify-center">
         <Toolbar
           isEditMode={isEditMode}
           onToggleMode={toggleEditMode}
@@ -308,9 +295,9 @@ export default function HomePage() {
       </div>
 
       {/* Main Content */}
-      <main className="max-w-2xl mx-auto px-4 pb-20">
+      <main className="flex-1 w-full max-w-[720px] mx-auto px-4 flex flex-col">
         {/* Schedule View */}
-        <div className="bg-gray-900/50 backdrop-blur-sm rounded-xl border border-white/5 p-2 sm:p-4 mb-6">
+        <div className="flex-1">
           <ScheduleView
             slots={scheduleData.slots}
             activeSlotIndex={activeSlotIndex}
@@ -322,9 +309,9 @@ export default function HomePage() {
           />
         </div>
 
-        {/* Chat Interface (only in edit mode) */}
+        {/* Chat Interface (edit mode only) */}
         {isEditMode && (
-          <div className="bg-gray-900/50 backdrop-blur-sm rounded-xl border border-white/5 p-2 sm:p-4 h-96">
+          <div className="mt-4">
             <ChatInterface isVisible={isEditMode} scheduleData={scheduleData} onScheduleChange={onScheduleChange} />
           </div>
         )}

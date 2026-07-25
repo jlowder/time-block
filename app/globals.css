@@ -1,59 +1,175 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Backgrounds */
+  --bg-page: #FAFAF8;
+  --bg-surface: #FFFFFF;
+  --bg-surface-hover: #F5F5F3;
+
+  /* Text */
+  --text-primary: #111110;
+  --text-secondary: #6B6B66;
+  --text-muted: #9A9A94;
+
+  /* Borders */
+  --border-subtle: #E8E6E1;
+  --border-medium: #D4D2CC;
+
+  /* Accents */
+  --accent-indigo: #2D2A54;
+  --accent-gold: #C8A44E;
+  --accent-gold-light: rgba(200, 164, 78, 0.15);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+
+  /* Theme colors for schedule cards */
+  --theme-study: #D4A053;
+  --theme-break: #7EB5D6;
+  --theme-exercise: #7CB89A;
+  --theme-leisure: #B08DB8;
+  --theme-special: #D47B7B;
+
+  /* Theme backgrounds (with opacity for icon containers) */
+  --theme-study-bg: rgba(212, 160, 83, 0.08);
+  --theme-break-bg: rgba(126, 181, 214, 0.12);
+  --theme-exercise-bg: rgba(124, 184, 154, 0.10);
+  --theme-leisure-bg: rgba(176, 141, 184, 0.10);
+  --theme-special-bg: rgba(212, 123, 123, 0.10);
+
+  /* Theme badge backgrounds (slightly stronger for badges) */
+  --theme-study-badge: rgba(212, 160, 83, 0.12);
+  --theme-break-badge: rgba(126, 181, 214, 0.15);
+  --theme-exercise-badge: rgba(124, 184, 154, 0.13);
+  --theme-leisure-badge: rgba(176, 141, 184, 0.13);
+  --theme-special-badge: rgba(212, 123, 123, 0.13);
+
+  /* Theme badge text (darker for contrast on light backgrounds) */
+  --theme-study-badge-text: #9A7230;
+  --theme-break-badge-text: #4A8BAD;
+  --theme-exercise-badge-text: #4A8B6D;
+  --theme-leisure-badge-text: #7D5E8C;
+  --theme-special-badge-text: #9A4A4A;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --color-background: var(--bg-page);
+  --color-foreground: var(--text-primary);
+
+  /* Surface colors */
+  --color-surface: var(--bg-surface);
+  --color-surface-hover: var(--bg-surface-hover);
+
+  /* Theme colors */
+  --color-theme-study: var(--theme-study);
+  --color-theme-break: var(--theme-break);
+  --color-theme-exercise: var(--theme-exercise);
+  --color-theme-leisure: var(--theme-leisure);
+  --color-theme-special: var(--theme-special);
+
+  /* Accent colors */
+  --color-accent-indigo: var(--accent-indigo);
+  --color-accent-gold: var(--accent-gold);
+
+  /* Border colors */
+  --color-border-subtle: var(--border-subtle);
+  --color-border-medium: var(--border-medium);
+
+  /* Shadow tokens */
+  --shadow-token-sm: var(--shadow-sm);
+  --shadow-token-md: var(--shadow-md);
+  --shadow-token-lg: var(--shadow-lg);
+
+  /* Fonts */
+  --font-sans: 'Space Grotesk', var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', var(--font-geist-mono), ui-monospace, monospace;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-medium) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--border-medium);
+  border-radius: 3px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text-muted);
+}
+
+/* ── Input placeholder styling ── */
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
 }
 
 body {
-  background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
-  font-family: var(--font-geist-sans);
+  background-color: var(--bg-page);
+  color: var(--text-primary);
+  font-family: 'Inter', var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: var(--foreground);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-@keyframes pulse-gold {
-  0%, 100% {
-    border-color: #ffd700;
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
-  }
-  50% {
-    border-color: #ffed4a;
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
-  }
+/* ── Chat textarea focus ring ── */
+
+.chat-input {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.live-slot {
-  animation: pulse-gold 2s ease-in-out infinite;
+.chat-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(45, 42, 84, 0.15);
+  border-color: var(--accent-indigo);
 }
+
+/* ── Schedule cards ── */
+
+.schedule-card {
+  transition: opacity 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.schedule-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* ── Section divider ── */
 
 .section-divider {
   display: flex;
   align-items: center;
   margin: 1.5rem 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  transition: border-color 0.2s, box-shadow 0.2s;
+  border-top: 1px solid var(--border-subtle);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .section-divider.drag-over {
-  border-top-color: #ffd700;
-  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.2);
+  border-top-color: var(--accent-gold);
+  box-shadow: 0 2px 8px var(--accent-gold-light);
 }
 
 .section-divider.drag-over p {
-  color: #ffd700;
+  color: var(--accent-gold);
 }
 
-/* Ensure no horizontal overflow on small screens */
+/* ── Mobile overflow guard ── */
+
 @media (max-width: 499px) {
   html, body {
     overflow-x: hidden;

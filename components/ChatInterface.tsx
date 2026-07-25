@@ -21,7 +21,7 @@ export function ChatInterface({ isVisible, scheduleData, onScheduleChange }: Cha
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Auto-scroll to bottom on new messages
+  // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -73,32 +73,21 @@ export function ChatInterface({ isVisible, scheduleData, onScheduleChange }: Cha
       if (!res.ok) {
         setMessages((prev) => [
           ...prev,
-          {
-            role: 'assistant',
-            text: '❌ Failed to reach the LLM server. Is it running?',
-          },
+          { role: 'assistant', text: 'Failed to reach the LLM server. Is it running?' },
         ]);
       } else {
-        // Update parent state if schedule was modified
         if (data.schedule && onScheduleChange) {
           onScheduleChange(data.schedule);
         }
         setMessages((prev) => [
           ...prev,
-          {
-            role: 'assistant',
-            text: data.text,
-            toolOutputs: data.toolOutputs,
-          },
+          { role: 'assistant', text: data.text, toolOutputs: data.toolOutputs },
         ]);
       }
     } catch {
       setMessages((prev) => [
         ...prev,
-        {
-          role: 'assistant',
-          text: '❌ Failed to reach the LLM server. Is it running?',
-        },
+        { role: 'assistant', text: 'Failed to reach the LLM server. Is it running?' },
       ]);
     } finally {
       setLoading(false);
@@ -115,28 +104,56 @@ export function ChatInterface({ isVisible, scheduleData, onScheduleChange }: Cha
   if (!isVisible) return null;
 
   return (
-    <div className="flex h-full flex-col bg-gray-900/80 backdrop-blur-sm rounded-xl border border-white/10 overflow-hidden">
+    <div
+      className="flex h-full flex-col rounded-xl overflow-hidden"
+      style={{
+        background: 'var(--bg-surface)',
+        border: `1px solid var(--border-subtle)`,
+        boxShadow: 'var(--shadow-md)',
+      }}
+    >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
-        <h2 className="text-sm font-semibold text-white">🤖 Schedule Assistant</h2>
+      <div
+        className="flex items-center justify-between px-4 py-2.5 border-b"
+        style={{ borderColor: 'var(--border-subtle)' }}
+      >
+        <h2
+          className="text-sm font-semibold"
+          style={{ color: 'var(--text-primary)' }}
+        >
+          Schedule Assistant
+        </h2>
         {messages.some((m) => m.toolOutputs?.length) && (
-          <div className="flex gap-2 text-xs text-gray-400">
-            <button onClick={expandAll} className="hover:text-white transition-colors">
+          <div className="flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
+            <button
+              onClick={expandAll}
+              className="text-xs hover:underline transition-colors"
+              style={{ color: 'var(--text-muted)' }}
+            >
               Expand all
             </button>
-            <span className="text-gray-600">|</span>
-            <button onClick={collapseAll} className="hover:text-white transition-colors">
+            <span className="mx-1" style={{ color: 'var(--border-medium)' }}>|</span>
+            <button
+              onClick={collapseAll}
+              className="text-xs hover:underline transition-colors"
+              style={{ color: 'var(--text-muted)' }}
+            >
               Collapse all
             </button>
           </div>
         )}
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      {/* Messages area */}
+      <div
+        className="flex-1 overflow-y-auto px-4 py-4 space-y-4"
+        style={{ background: 'var(--bg-surface-hover)' }}
+      >
         {messages.length === 0 && (
-          <div className="flex items-center justify-center h-full text-gray-500 text-sm">
-            <p>Ask the assistant to add, edit, or decorate your schedule!</p>
+          <div className="flex items-center justify-center h-full">
+            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+              Ask the assistant to add, edit, or decorate your schedule
+            </p>
           </div>
         )}
 
@@ -146,13 +163,18 @@ export function ChatInterface({ isVisible, scheduleData, onScheduleChange }: Cha
             className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`max-w-[80%] rounded-lg p-3 ${
-                msg.role === 'user'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-800 text-gray-100'
-              }`}
+              className="max-w-[85%] rounded-lg p-3 text-sm leading-relaxed whitespace-pre-wrap"
+              style={{
+                background: msg.role === 'user'
+                  ? 'rgba(45, 42, 84, 0.06)'
+                  : 'var(--bg-surface)',
+                color: 'var(--text-primary)',
+                border: msg.role === 'assistant'
+                  ? `1px solid var(--border-subtle)`
+                  : 'none',
+              }}
             >
-              <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.text}</p>
+              <p>{msg.text}</p>
 
               {/* Tool outputs */}
               {msg.toolOutputs && msg.toolOutputs.length > 0 && (
@@ -162,31 +184,68 @@ export function ChatInterface({ isVisible, scheduleData, onScheduleChange }: Cha
                     return (
                       <div
                         key={toolIdx}
-                        className="rounded-md border border-white/10 bg-black/30 overflow-hidden"
+                        className="rounded-md border overflow-hidden"
+                        style={{ borderColor: 'var(--border-subtle)' }}
                       >
                         <button
                           onClick={() => toggleTool(String(toolIdx))}
-                          className="flex items-center gap-2 w-full px-3 py-1.5 text-left hover:bg-white/5 transition-colors"
+                          className="flex items-center gap-2 w-full px-3 py-2 text-left hover:bg-[var(--bg-surface-hover)] transition-colors"
                         >
-                          <span className="text-[10px] font-mono font-bold text-blue-400 bg-blue-500/10 px-1.5 py-0.5 rounded">
+                          <span
+                            className="flex-shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold tracking-wide"
+                            style={{
+                              background: 'rgba(45, 42, 84, 0.08)',
+                              color: 'var(--accent-indigo)',
+                            }}
+                          >
                             {tool.tool}
                           </span>
-                          <span className="text-[11px] text-gray-400 truncate max-w-[200px]">
+                          <span
+                            className="text-xs truncate max-w-[220px]"
+                            style={{ color: 'var(--text-muted)' }}
+                          >
                             {tool.command}
                           </span>
-                          <span className="ml-auto text-gray-500 text-xs">
-                            {isExpanded ? '▾' : '▸'}
+                          <span
+                            className="ml-auto text-xs flex-shrink-0"
+                            style={{ color: 'var(--text-muted)' }}
+                          >
+                            {isExpanded ? '\u25BE' : '\u25B8'}
                           </span>
                         </button>
 
                         {isExpanded && (
-                          <div className="px-3 pb-2 space-y-1">
-                            <div className="text-[10px] text-gray-500 uppercase tracking-wide">Command</div>
-                            <pre className="text-[11px] text-gray-300 font-mono bg-black/40 rounded p-2 overflow-x-auto">
+                          <div className="px-3 pb-3 space-y-2">
+                            <div
+                              className="text-[10px] font-semibold uppercase tracking-wider"
+                              style={{ color: 'var(--text-muted)' }}
+                            >
+                              Command
+                            </div>
+                            <pre
+                              className="text-xs font-mono rounded p-2 overflow-x-auto"
+                              style={{
+                                background: 'var(--bg-surface-hover)',
+                                color: 'var(--text-secondary)',
+                                border: `1px solid var(--border-subtle)`,
+                              }}
+                            >
                               {tool.command}
                             </pre>
-                            <div className="text-[10px] text-gray-500 uppercase tracking-wide mt-2">Result</div>
-                            <pre className="text-[11px] text-green-400 font-mono bg-green-500/5 rounded p-2 overflow-x-auto">
+                            <div
+                              className="text-[10px] font-semibold uppercase tracking-wider"
+                              style={{ color: 'var(--text-muted)' }}
+                            >
+                              Result
+                            </div>
+                            <pre
+                              className="text-xs font-mono rounded p-2 overflow-x-auto"
+                              style={{
+                                background: 'rgba(124, 184, 154, 0.08)',
+                                color: '#5a9a78',
+                                border: `1px solid rgba(124, 184, 154, 0.2)`,
+                              }}
+                            >
                               {typeof tool.result === 'string'
                                 ? tool.result
                                 : JSON.stringify(tool.result, null, 2)}
@@ -205,11 +264,35 @@ export function ChatInterface({ isVisible, scheduleData, onScheduleChange }: Cha
         {/* Loading indicator */}
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-gray-800 text-gray-100 rounded-lg p-3">
+            <div
+              className="rounded-lg p-3"
+              style={{
+                background: 'var(--bg-surface)',
+                border: `1px solid var(--border-subtle)`,
+              }}
+            >
               <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-blue-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                <span className="w-2 h-2 rounded-full bg-blue-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                <span className="w-2 h-2 rounded-full bg-blue-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                <span
+                  className="w-1.5 h-1.5 rounded-full animate-bounce"
+                  style={{
+                    background: 'var(--accent-indigo)',
+                    animationDelay: '0ms',
+                  }}
+                />
+                <span
+                  className="w-1.5 h-1.5 rounded-full animate-bounce"
+                  style={{
+                    background: 'var(--accent-indigo)',
+                    animationDelay: '150ms',
+                  }}
+                />
+                <span
+                  className="w-1.5 h-1.5 rounded-full animate-bounce"
+                  style={{
+                    background: 'var(--accent-indigo)',
+                    animationDelay: '300ms',
+                  }}
+                />
               </div>
             </div>
           </div>
@@ -219,7 +302,10 @@ export function ChatInterface({ isVisible, scheduleData, onScheduleChange }: Cha
       </div>
 
       {/* Input area */}
-      <div className="p-3 border-t border-white/10">
+      <div
+        className="p-3 border-t"
+        style={{ borderColor: 'var(--border-subtle)' }}
+      >
         <div className="flex items-end gap-2">
           <textarea
             ref={textareaRef}
@@ -228,16 +314,49 @@ export function ChatInterface({ isVisible, scheduleData, onScheduleChange }: Cha
             onKeyDown={handleKeyDown}
             placeholder="Ask the assistant..."
             rows={1}
-            className="flex-1 resize-none rounded-l-lg bg-gray-800 border border-gray-700 px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500 h-12"
+            className="flex-1 resize-none rounded-lg px-3 py-2 text-sm chat-input transition-colors"
+            style={{
+              background: 'var(--bg-surface-hover)',
+              color: 'var(--text-primary)',
+              border: `1px solid var(--border-subtle)`,
+            }}
           />
           <button
             onClick={send}
             disabled={loading || !input.trim()}
-            className="flex-shrink-0 rounded-r-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:cursor-not-allowed px-4 text-sm font-medium text-white transition-colors"
+            className="flex-shrink-0 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+            style={{
+              background: loading || !input.trim()
+                ? 'var(--bg-surface-hover)'
+                : 'var(--accent-indigo)',
+              color: loading || !input.trim()
+                ? 'var(--text-muted)'
+                : '#ffffff',
+              cursor: loading || !input.trim()
+                ? 'not-allowed'
+                : 'pointer',
+            }}
+            onMouseEnter={(e) => {
+              if (!loading && input.trim()) {
+                (e.currentTarget as HTMLButtonElement).style.background = '#3d3a68';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!loading && input.trim()) {
+                (e.currentTarget as HTMLButtonElement).style.background = 'var(--accent-indigo)';
+              }
+            }}
           >
             {loading ? (
               <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
                 <path
                   className="opacity-75"
                   fill="currentColor"
@@ -245,7 +364,15 @@ export function ChatInterface({ isVisible, scheduleData, onScheduleChange }: Cha
                 />
               </svg>
             ) : (
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                className="w-4 h-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <line x1="22" y1="2" x2="11" y2="13" />
                 <polygon points="22 2 15 22 11 13 2 9 22 2" />
               </svg>

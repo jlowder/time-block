@@ -86,7 +86,7 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
       }
 
       setSuccess('Settings saved successfully');
-      await loadSettings(); // Refresh to show masked key
+      await loadSettings();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save');
     } finally {
@@ -111,20 +111,40 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0, 0, 0, 0.2)', backdropFilter: 'blur(4px)' }}
+      onClick={onClose}
+    >
       <div
-        className="w-full max-w-lg mx-4 bg-gray-900 rounded-2xl border border-gray-700 shadow-2xl overflow-hidden"
+        className="w-full max-w-[480px] rounded-xl overflow-hidden"
+        style={{
+          background: 'var(--bg-surface)',
+          boxShadow: 'var(--shadow-lg)',
+        }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-700">
-          <h2 className="text-lg font-bold text-white">⚙️ Settings</h2>
+        <div
+          className="flex items-center justify-between px-6 py-4 border-b"
+          style={{ borderColor: 'var(--border-subtle)' }}
+        >
+          <h2
+            className="text-lg font-semibold tracking-tight"
+            style={{ color: 'var(--text-primary)' }}
+          >
+            Settings
+          </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors p-1"
+            className="p-1 rounded transition-colors"
+            style={{ color: 'var(--text-muted)' }}
             title="Close"
           >
-            ✕
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
           </button>
         </div>
 
@@ -132,13 +152,18 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
         <div className="px-6 py-5 space-y-5 max-h-[70vh] overflow-y-auto">
           {loading ? (
             <div className="flex items-center justify-center py-8">
-              <span className="text-gray-400 animate-pulse">Loading settings...</span>
+              <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                Loading settings...
+              </span>
             </div>
           ) : (
             <>
               {/* API Key */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1.5">
+                <label
+                  className="block text-sm font-medium mb-1.5"
+                  style={{ color: 'var(--text-secondary)' }}
+                >
                   API Key
                 </label>
                 <div className="flex gap-2">
@@ -147,40 +172,64 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
                     value={apiKey || (settings?.apiKeyMasked || '')}
                     onChange={(e) => setApiKey(e.target.value)}
                     placeholder="Enter your LLM API key"
-                    className="flex-1 px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="flex-1 px-3 py-2 text-sm rounded-lg transition-colors focus:outline-none"
+                    style={{
+                      fontFamily: 'var(--font-inter)',
+                      background: 'var(--bg-surface-hover)',
+                      color: 'var(--text-primary)',
+                      border: `1px solid var(--border-subtle)`,
+                    }}
                   />
                   <button
                     type="button"
                     onClick={() => setShowKey(!showKey)}
-                    className="px-3 py-2 text-gray-400 hover:text-white bg-gray-800 border border-gray-600 rounded-lg text-sm transition-colors"
+                    className="px-3 py-2 text-sm rounded-lg transition-colors"
+                    style={{
+                      background: 'var(--bg-surface-hover)',
+                      color: 'var(--text-muted)',
+                      border: `1px solid var(--border-subtle)`,
+                    }}
                     title={showKey ? 'Hide key' : 'Show key'}
                   >
-                    {showKey ? '👁️' : '🔒'}
+                    {showKey ? (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    ) : (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                      </svg>
+                    )}
                   </button>
                 </div>
                 {settings?.hasApiKey && (
                   <div className="flex items-center justify-between mt-2">
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
                       Currently stored: {settings.apiKeyMasked}
                     </span>
                     <button
                       type="button"
                       onClick={handleRemoveKey}
-                      className="text-xs text-red-400 hover:text-red-300 transition-colors"
+                      className="text-xs font-medium transition-colors"
+                      style={{ color: 'var(--theme-special)' }}
                     >
                       Remove
                     </button>
                   </div>
                 )}
-
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs mt-1.5" style={{ color: 'var(--text-muted)' }}>
                   Type a new key to replace the stored one. Leave blank to keep the current key.
                 </p>
               </div>
 
               {/* Endpoint */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1.5">
+                <label
+                  className="block text-sm font-medium mb-1.5"
+                  style={{ color: 'var(--text-secondary)' }}
+                >
                   LLM Endpoint
                 </label>
                 <input
@@ -188,13 +237,22 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
                   value={endpoint}
                   onChange={(e) => setEndpoint(e.target.value)}
                   placeholder="http://localhost:8080/v1"
-                  className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3 py-2 text-sm rounded-lg transition-colors focus:outline-none"
+                  style={{
+                    fontFamily: 'var(--font-inter)',
+                    background: 'var(--bg-surface-hover)',
+                    color: 'var(--text-primary)',
+                    border: `1px solid var(--border-subtle)`,
+                  }}
                 />
               </div>
 
               {/* Model */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1.5">
+                <label
+                  className="block text-sm font-medium mb-1.5"
+                  style={{ color: 'var(--text-secondary)' }}
+                >
                   Model Name
                 </label>
                 <input
@@ -202,19 +260,39 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
                   value={model}
                   onChange={(e) => setModel(e.target.value)}
                   placeholder="Qwen3.6-35B-A3B-MLX-8bit"
-                  className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full px-3 py-2 text-sm rounded-lg transition-colors focus:outline-none"
+                  style={{
+                    fontFamily: 'var(--font-inter)',
+                    background: 'var(--bg-surface-hover)',
+                    color: 'var(--text-primary)',
+                    border: `1px solid var(--border-subtle)`,
+                  }}
                 />
               </div>
 
-              {/* Messages */}
+              {/* Status messages */}
               {success && (
-                <div className="px-3 py-2 bg-emerald-900/30 border border-emerald-700 rounded-lg text-sm text-emerald-300">
-                  ✅ {success}
+                <div
+                  className="px-3 py-2.5 rounded-lg text-sm font-medium"
+                  style={{
+                    background: 'rgba(124, 184, 154, 0.1)',
+                    color: '#5a9a78',
+                    border: `1px solid rgba(124, 184, 154, 0.2)`,
+                  }}
+                >
+                  {success}
                 </div>
               )}
               {error && (
-                <div className="px-3 py-2 bg-red-900/30 border border-red-700 rounded-lg text-sm text-red-300">
-                  ❌ {error}
+                <div
+                  className="px-3 py-2.5 rounded-lg text-sm font-medium"
+                  style={{
+                    background: 'rgba(212, 123, 123, 0.1)',
+                    color: 'var(--theme-special)',
+                    border: `1px solid rgba(212, 123, 123, 0.2)`,
+                  }}
+                >
+                  {error}
                 </div>
               )}
             </>
@@ -223,21 +301,30 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
 
         {/* Footer */}
         {!loading && (
-          <div className="flex justify-end gap-2 px-6 py-4 border-t border-gray-700 bg-gray-800/50">
+          <div
+            className="flex justify-end gap-2 px-6 py-4 border-t"
+            style={{ borderColor: 'var(--border-subtle)' }}
+          >
             <button
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-300 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+              className="px-4 py-2 text-sm font-medium rounded-lg transition-colors"
+              style={{
+                color: 'var(--text-secondary)',
+                background: 'transparent',
+              }}
             >
               Cancel
             </button>
             <button
               onClick={handleSave}
               disabled={saving || !hasChanges}
-              className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
-                hasChanges
-                  ? 'bg-purple-600 hover:bg-purple-500 disabled:opacity-70'
-                  : 'bg-gray-600 opacity-60 cursor-not-allowed'
-              }`}
+              className="px-4 py-2 text-sm font-medium rounded-lg transition-colors"
+              style={{
+                background: hasChanges ? 'var(--accent-indigo)' : 'var(--bg-surface-hover)',
+                color: hasChanges ? '#ffffff' : 'var(--text-muted)',
+                cursor: hasChanges ? 'pointer' : 'not-allowed',
+                opacity: hasChanges ? 1 : 0.6,
+              }}
             >
               {saving ? 'Saving...' : 'Save'}
             </button>

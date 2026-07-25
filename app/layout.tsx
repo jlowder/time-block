@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono, Inter } from 'next/font/google';
+import { Space_Grotesk } from 'next/font/google';
+import { JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 
 const geistSans = Geist({
@@ -18,6 +20,18 @@ const inter = Inter({
   subsets: ['latin'],
 });
 
+const spaceGrotesk = Space_Grotesk({
+  variable: '--font-space-grotesk',
+  weight: ['400', '500', '600', '700'],
+  subsets: ['latin'],
+});
+
+const jetBrainsMono = JetBrains_Mono({
+  variable: '--font-jetbrains-mono',
+  weight: ['400', '500'],
+  subsets: ['latin'],
+});
+
 export const metadata: Metadata = {
   title: 'Time Block',
   description: 'AI-powered time blocking assistant for managing your daily schedule',
@@ -31,10 +45,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${spaceGrotesk.variable} ${jetBrainsMono.variable} antialiased`}
         style={{
-          fontFamily: 'var(--font-inter)',
-          background: 'linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%)',
+          fontFamily: 'var(--font-space-grotesk)',
+          background: '#FAFAF8',
           minHeight: '100vh',
           display: 'flex',
           flexDirection: 'column',

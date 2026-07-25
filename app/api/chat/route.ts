@@ -203,7 +203,9 @@ const decorateTasksTool = tool({
   inputSchema: z.object({}),
   execute: async () => {
     const currentSchedule = schedule.loadSchedule();
-    const apiKey = (await getApiKey()) || 'omlx-om5hh4rsln2h3f8w';
+
+    // Use the same model provider as the main chat — respects settings, keychain, env var
+    const model = await getModelInstance();
 
     const prompt = `You are a schedule decorator. For each task below, assign an appropriate emoji icon, a brief description, and a theme. Respond with ONLY a JSON array (no markdown, no explanation) in this exact format:
 [{"id":"slot-1","icon":"🧩","desc":"A short description of this activity","theme":"study"}]
@@ -220,30 +222,12 @@ Themes to choose from: study, break, exercise, leisure, special`;
 
     let enriched: { id: string; icon: string; desc: string; theme: string }[];
     try {
-      const response = await fetch('http://localhost:8080/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: 'Qwen3-Coder-Next-MLX-6bit',
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.7,
-        }),
+      const result = await generateText({
+        model,
+        prompt,
       });
 
-      if (!response.ok) {
-        return {
-          success: false,
-          message: `LLM API error: ${response.status} ${response.statusText}`,
-        };
-      }
-
-      const data = (await response.json()) as { choices: { message: { content: string } }[] };
-      const text = data.choices[0]?.message.content ?? '';
-
-      const jsonMatch = text.match(/\[[\s\S]*\]/);
+      const jsonMatch = result.text.match(/\[[\s\S]*\]/);
       if (!jsonMatch) throw new Error('No JSON found');
       enriched = JSON.parse(jsonMatch[0]);
     } catch {
@@ -383,13 +367,15 @@ export async function POST(req: NextRequest) {
     // Get LLM provider (async — reads from keyring)
     const model = await getModelInstance();
 
-    const result = await generateText({
+    const result = (await generateText({
       model,
       system: SYSTEM_PROMPT,
       prompt: userPrompt,
       tools,
       stopWhen: isStepCount(5),
-    });
+      // @ts-expect-error experimental_abortSignal needed for ai SDK v7
+      experimental_abortSignal: req.signal,
+    })) as unknown as Awaited<ReturnType<typeof generateText>>;
 
     // Map tool calls/results to flat output array
     const toolOutputs: ToolOutput[] = [];

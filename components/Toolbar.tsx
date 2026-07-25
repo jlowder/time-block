@@ -39,11 +39,18 @@ export function Toolbar({
       };
       reader.readAsText(file);
     }
-    e.target.value = ''; // Reset for re-import
+    e.target.value = '';
   };
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 border-b border-white/5">
+    <div
+      className="flex items-center justify-center px-3 py-1.5 rounded-lg border shadow-sm"
+      style={{
+        background: 'var(--bg-surface)',
+        borderColor: 'var(--border-subtle)',
+        boxShadow: 'var(--shadow-sm)',
+      }}
+    >
       <input
         ref={fileInputRef}
         type="file"
@@ -52,73 +59,103 @@ export function Toolbar({
         onChange={handleFileChange}
       />
 
-      {/* Sound Toggle — prominent on/off */}
+      {/* Segmented control: View / Edit */}
+      <div className="flex rounded-md overflow-hidden border" style={{ borderColor: 'var(--border-subtle)' }}>
+        <button
+          onClick={() => isEditMode && onToggleMode()}
+          className="px-3 py-1 text-xs font-medium transition-colors select-none"
+          style={{
+            color: isEditMode ? 'var(--text-muted)' : 'var(--accent-indigo)',
+            background: isEditMode ? 'transparent' : 'var(--accent-gold-light)',
+          }}
+        >
+          View
+        </button>
+        <button
+          onClick={() => !isEditMode && onToggleMode()}
+          className="px-3 py-1 text-xs font-medium transition-colors select-none border-l"
+          style={{
+            borderColor: 'var(--border-subtle)',
+            color: isEditMode ? 'var(--accent-indigo)' : 'var(--text-muted)',
+            background: isEditMode ? 'var(--accent-gold-light)' : 'transparent',
+          }}
+        >
+          Edit
+        </button>
+      </div>
+
+      {/* Divider */}
+      <div
+        className="w-px h-4 mx-3"
+        style={{ background: 'var(--border-subtle)' }}
+      />
+
+      {/* Sound toggle */}
       <button
         onClick={() => {
           onToggleSound();
           if (!soundEnabled) playChime();
         }}
-        className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-all duration-200 cursor-pointer ${
-          soundEnabled
-            ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-500/30'
-            : 'bg-gray-700 hover:bg-gray-600 text-gray-400'
-        }`}
-        title={soundEnabled ? 'Mute sounds' : 'Enable sounds'}
+        className="p-1.5 rounded transition-colors"
+        style={{ color: 'var(--text-secondary)' }}
+        title={soundEnabled ? 'Mute' : 'Enable sound'}
       >
-        <span className="text-lg">{soundEnabled ? '🔊' : '🔇'}</span>
-        <span>{soundEnabled ? 'Sound On' : 'Sound Off'}</span>
+        {soundEnabled ? (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+          </svg>
+        ) : (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+            <line x1="23" y1="9" x2="17" y2="15" />
+            <line x1="17" y1="9" x2="23" y2="15" />
+          </svg>
+        )}
       </button>
 
-      {/* Edit/View Toggle — prominent toggle switch */}
-      <button
-        onClick={onToggleMode}
-        type="button"
-        className={`relative flex items-center w-40 h-10 rounded-full p-1 transition-colors duration-300 cursor-pointer select-none ${
-          isEditMode ? 'bg-gradient-to-r from-emerald-600 to-emerald-500' : 'bg-gradient-to-r from-blue-600 to-blue-500'
-        }`}
-      >
-        {/* Sliding white pill */}
-        <span
-          className={`absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-full shadow-lg transition-all duration-300 ease-in-out bg-white/90 ${
-            isEditMode ? 'right-1' : 'left-1'
-          }`}
-        />
-        {/* Labels — active dark (on white pill), inactive white (on colored bg) */}
-        <span className={`relative z-10 flex-1 text-center text-sm font-bold transition-colors duration-300 ${
-          isEditMode ? 'text-white/80' : 'text-gray-700'
-        }`}>
-          👁️ View
-        </span>
-        <span className={`relative z-10 flex-1 text-center text-sm font-bold transition-colors duration-300 ${
-          isEditMode ? 'text-gray-700' : 'text-white/80'
-        }`}>
-          ✏️ Edit
-        </span>
-      </button>
+      {/* Divider */}
+      <div
+        className="w-px h-4 mx-3"
+        style={{ background: 'var(--border-subtle)' }}
+      />
 
       {/* Import */}
       <button
         onClick={handleFileClick}
-        className="flex items-center gap-1.5 rounded-lg px-2 py-1 sm:px-3 sm:py-1.5 text-xs font-medium text-gray-300 border border-gray-700 bg-gray-800/50 hover:bg-gray-700/50 transition-colors"
+        className="px-3 py-1 text-xs font-medium rounded transition-colors"
+        style={{ color: 'var(--text-secondary)' }}
       >
-        📥 Import
+        Import
       </button>
 
       {/* Export */}
       <button
         onClick={onExport}
-        className="flex items-center gap-1.5 rounded-lg px-2 py-1 sm:px-3 sm:py-1.5 text-xs font-medium text-gray-300 border border-gray-700 bg-gray-800/50 hover:bg-gray-700/50 transition-colors"
+        className="px-3 py-1 text-xs font-medium rounded transition-colors"
+        style={{ color: 'var(--text-secondary)' }}
       >
-        📤 Export
+        Export
       </button>
+
+      {/* Divider */}
+      <div
+        className="w-px h-4 mx-3"
+        style={{ background: 'var(--border-subtle)' }}
+      />
 
       {/* Settings */}
       <button
         onClick={onOpenSettings}
-        className="flex items-center gap-1.5 rounded-lg px-2 py-1 sm:px-3 sm:py-1.5 text-xs font-medium text-gray-300 border border-gray-700 bg-gray-800/50 hover:bg-gray-700/50 transition-colors"
-        title="LLM settings"
+        className="p-1.5 rounded transition-colors"
+        style={{ color: 'var(--text-secondary)' }}
+        title="Settings"
       >
-        ⚙️ Settings
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+        </svg>
       </button>
     </div>
   );

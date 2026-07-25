@@ -6,7 +6,6 @@ import { getApiKey } from './keyring';
 const DEFAULTS = {
   model: 'Qwen3.6-35B-A3B-MLX-8bit',
   endpoint: 'http://localhost:8080/v1',
-  apiKey: 'omlx-om5hh4rsln2h3f8w',
 };
 
 let cachedConfig: { model: string; endpoint: string } | null = null;
@@ -31,14 +30,33 @@ export async function getModelInstance() {
     }
   }
 
-  // Get API key from keyring (async)
-  const apiKey = (await getApiKey()) || DEFAULTS.apiKey;
+  // Get API key: env var → keychain → error
+  const apiKey = process.env.LLM_API_KEY || (await getApiKey());
+  if (!apiKey) {
+    throw new Error(
+      'No API key found. Set LLM_API_KEY env var, or configure via the Settings dialog in the app.'
+    );
+  }
 
-  // Create provider with current settings
+  // Wrap fetch with a 15s timeout so LLM requests fail fast instead of hanging
+  const timeoutFetch = (url: string | URL | Request, options: RequestInit = {}) => {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), 15000);
+    const fetchPromise = fetch(url, {
+      ...options,
+      signal: options.signal
+        ? AbortSignal.any([options.signal, controller.signal])
+        : controller.signal,
+    });
+    return fetchPromise.finally(() => clearTimeout(id));
+  };
+
+  // Create provider with timeout-aware fetch
   const provider = createOpenAICompatible({
     name: 'local-llm',
     baseURL: cachedConfig.endpoint,
     apiKey,
+    fetch: timeoutFetch,
   });
 
   return provider(cachedConfig.model);
