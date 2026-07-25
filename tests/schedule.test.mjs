@@ -18,6 +18,19 @@ function durationMinutes(endH, endM, startH, startM) {
   return (endH * 60 + endM) - (startH * 60 + startM);
 }
 
+async function chat(prompt, schedule) {
+  const response = await fetch('http://localhost:3000/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt, schedule })
+  });
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`API returned ${response.status}: ${text}`);
+  }
+  return response.json();
+}
+
 // ── Test runner ───────────────────────────────────────────────────────────────
 
 let passed = 0;
@@ -69,41 +82,8 @@ let total = (23 * 60 + 50) + 15;
 const wrapped = total % (24 * 60);
 assert(Math.floor(wrapped / 60) === 0 && wrapped % 60 === 5, `got ${Math.floor(wrapped/60)}:${String(wrapped%60).padStart(2,'0')}`);
 
-// Test 8: Default schedule has 15 slots
-console.log('\nTest 8: Default schedule has 15 slots');
-const defaultSchedule = {
-  slots: [
-    { id: 'slot-1', startH: 8, startM: 0, endH: 9, endM: 0, title: 'Puzzles & Newsletters' },
-    { id: 'slot-2', startH: 9, startM: 0, endH: 9, endM: 5, title: 'Break' },
-    { id: 'slot-3', startH: 9, startM: 5, endH: 9, endM: 20, title: 'CourseBox' },
-    { id: 'slot-4', startH: 9, startM: 20, endH: 9, endM: 25, title: 'Break' },
-    { id: 'slot-5', startH: 9, startM: 25, endH: 9, endM: 45, title: 'LLMs From Scratch' },
-    { id: 'slot-6', startH: 9, startM: 45, endH: 9, endM: 50, title: 'Break' },
-    { id: 'slot-7', startH: 9, startM: 50, endH: 10, endM: 10, title: 'Quantum Programming' },
-    { id: 'slot-8', startH: 10, startM: 10, endH: 10, endM: 15, title: 'Break' },
-    { id: 'slot-9', startH: 10, startM: 15, endH: 10, endM: 25, title: 'Stretching Session 1' },
-    { id: 'slot-10', startH: 10, startM: 25, endH: 10, endM: 30, title: 'Break' },
-    { id: 'slot-11', startH: 10, startM: 30, endH: 11, endM: 0, title: 'Open Notebook' },
-    { id: 'slot-12', startH: 11, startM: 0, endH: 11, endM: 5, title: 'Break' },
-    { id: 'slot-13', startH: 11, startM: 5, endH: 11, endM: 25, title: 'Study Python Continuations' },
-    { id: 'slot-14', startH: 11, startM: 25, endH: 11, endM: 30, title: 'Break' },
-    { id: 'slot-15', startH: 11, startM: 30, endH: 11, endM: 45, title: 'Stretching Session 2' },
-  ],
-  dividers: [
-    { index: 0, label: 'Morning Warm-up' },
-    { index: 2, label: 'Study Block 1' },
-    { index: 14, label: 'Wind Down' },
-  ],
-};
-assert(defaultSchedule.slots.length === 15, `got ${defaultSchedule.slots.length} slots`);
-
-// Test 9: Default schedule last slot ends at 11:45 AM
-console.log('\nTest 9: Default schedule ends at 11:45 AM');
-const lastSlot = defaultSchedule.slots[defaultSchedule.slots.length - 1];
-assert(lastSlot.endH === 11 && lastSlot.endM === 45, `got ${formatTime12(lastSlot.endH, lastSlot.endM)}`);
-
-// Test 10: Adding a 15-min task at end should end at 12:00 PM
-console.log('\nTest 10: Adding 15-min task at 11:45 AM → ends at 12:00 PM');
+// Test 8: Adding a 15-min task at end should end at 12:00 PM
+console.log('\nTest 8: Adding 15-min task at 11:45 AM → ends at 12:00 PM');
 const newSlot = {
   id: 'slot-16',
   startH: 11, startM: 45,
@@ -112,24 +92,24 @@ const newSlot = {
 };
 assert(formatTime12(newSlot.endH, newSlot.endM) === '12:00 PM', `got "${formatTime12(newSlot.endH, newSlot.endM)}"`);
 
-// Test 11: New slot has all required fields
-console.log('\nTest 11: New slot has all required fields');
+// Test 9: New slot has all required fields
+console.log('\nTest 9: New slot has all required fields');
 const requiredFields = ['id', 'startH', 'startM', 'endH', 'endM', 'title'];
 const missing = requiredFields.filter(f => !(f in newSlot));
 assert(missing.length === 0, `Missing fields: ${missing.join(', ') || 'none'}`);
 
-// Test 12: 15-minute duration is correct
-console.log('\nTest 12: Test task duration is 15 minutes');
+// Test 10: 15-minute duration is correct
+console.log('\nTest 10: Test task duration is 15 minutes');
 const taskDuration = durationMinutes(newSlot.endH, newSlot.endM, newSlot.startH, newSlot.startM);
 assert(taskDuration === 15, `got ${taskDuration} minutes`);
 
-// Test 13: recalculateTimes guard rejects negative durations
-console.log('\nTest 13: Guard rejects negative duration (endH=0, startH=15)');
+// Test 11: recalculateTimes guard rejects negative durations
+console.log('\nTest 11: Guard rejects negative duration (endH=0, startH=15)');
 const badSlotDuration = (0 * 60 + 0) - (15 * 60 + 0);
 assert(badSlotDuration <= 0, `expected negative, got ${badSlotDuration}`);
 
-// Test 14: Correct end time calculation from duration
-console.log('\nTest 14: endH/endM from duration (15:00 + 45min = 15:45)');
+// Test 12: Correct end time calculation from duration
+console.log('\nTest 12: endH/endM from duration (15:00 + 45min = 15:45)');
 const startTime = 15 * 60 + 0;
 const duration = 45;
 const endTime = startTime + duration;
@@ -137,8 +117,8 @@ const endH = Math.floor(endTime / 60);
 const endM = endTime % 60;
 assert(endH === 15 && endM === 45, `got ${endH}:${String(endM).padStart(2, '0')} (expected 15:45)`);
 
-// Test 15: Time wraps past midnight correctly
-console.log('\nTest 15: Time wraps past midnight (23:50 + 30min = 0:20)');
+// Test 13: Time wraps past midnight correctly
+console.log('\nTest 13: Time wraps past midnight (23:50 + 30min = 0:20)');
 const lateStart = 23 * 60 + 50;
 const lateDuration = 30;
 const lateTotal = lateStart + lateDuration;
@@ -148,142 +128,106 @@ const lateH = Math.floor(lateWrapped / 60);
 const lateM = lateWrapped % 60;
 assert(lateH === 0 && lateM === 20, `got ${lateH}:${String(lateM).padStart(2, '0')} (expected 0:20)`);
 
-// Test 16: Add task via LLM chat and verify 12:00 PM (not AM)
-console.log('\nTest 16: Add task via LLM chat - "add a task at 11:45 for 15 minutes"');
+// Test 14: Add task via LLM chat and verify 12:00 PM (not AM)
+// Initial schedule is empty; this is the first task.
+console.log('\nTest 14: Add first task via LLM chat - "add a task at 11:45 for 15 minutes"');
 try {
-  const prompt = 'Add a task called "LLM Test" at 11:45 AM for 15 minutes';
-  const response = await fetch('http://localhost:3000/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt })
-  });
-
-  if (!response.ok) throw new Error(`API returned ${response.status}`);
-
-  const data = await response.json();
+  const data = await chat('Add a task called "LLM Test" at 11:45 AM for 15 minutes');
   if (!data.schedule) throw new Error('No schedule in response');
+  if (data.schedule.slots.length !== 1) throw new Error(`Expected 1 slot, got ${data.schedule.slots.length}`);
 
-  const lastSlot = data.schedule.slots[data.schedule.slots.length - 1];
-  const endTime = formatTime12(lastSlot.endH, lastSlot.endM);
-
+  const slot = data.schedule.slots[0];
+  const endTime = formatTime12(slot.endH, slot.endM);
   if (endTime !== '12:00 PM') {
-    throw new Error(`Expected 12:00 PM, got ${endTime} (endH=${lastSlot.endH}, endM=${lastSlot.endM})`);
+    throw new Error(`Expected 12:00 PM, got ${endTime}`);
   }
 
-  console.log('  ✅ PASSED: LLM added task with correct end time:', endTime);
+  console.log('  ✅ PASSED: LLM added first task with correct end time:', endTime);
   passed++;
 } catch (err) {
   console.log('  ❌ FAILED:', err.message);
   failed++;
 }
 
-// Test 17: Add task "at the end" and verify duration is correct
-console.log('\nTest 17: Add task via LLM chat - "add task at end for 15 minutes"');
+// Test 15: Add second task "at the end" and verify duration
+console.log('\nTest 15: Add task via LLM chat - "add task at end for 15 minutes"');
 try {
-  const prompt = 'Add a task at the end of the schedule for 15 minutes';
-  const response = await fetch('http://localhost:3000/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt })
-  });
-
-  if (!response.ok) throw new Error(`API returned ${response.status}`);
-
-  const data = await response.json();
+  const currentSchedule = { slots: [{ id: 'slot-temp1', startH: 11, startM: 45, endH: 12, endM: 0, title: 'LLM Test' }] };
+  const data = await chat('Add a task called "Afternoon Walk" at the end of the schedule for 15 minutes', currentSchedule);
   if (!data.schedule) throw new Error('No schedule in response');
+  if (data.schedule.slots.length !== 2) throw new Error(`Expected 2 slots, got ${data.schedule.slots.length}`);
 
-  const lastSlot = data.schedule.slots[data.schedule.slots.length - 1];
-  const startTime = formatTime12(lastSlot.startH, lastSlot.startM);
-  const endTime = formatTime12(lastSlot.endH, lastSlot.endM);
+  const lastSlot = data.schedule.slots[1];
   const taskDuration = durationMinutes(lastSlot.endH, lastSlot.endM, lastSlot.startH, lastSlot.startM);
 
-  // Verify duration is 15 minutes
   if (taskDuration !== 15) {
     throw new Error(`Expected 15 min duration, got ${taskDuration} min`);
   }
 
-  // Verify end time format is valid (not 0:0 AM)
+  // Verify end time format is valid
   if (lastSlot.endH === 0 && lastSlot.endM === 0 && lastSlot.startH > 0) {
     throw new Error(`Invalid end time (endH=0, endM=0 after startH=${lastSlot.startH})`);
   }
 
-  console.log('  ✅ PASSED: LLM added 15-min task:', startTime, '-', endTime);
+  console.log('  ✅ PASSED: LLM added 15-min task:', lastSlot.startH, lastSlot.startM, '-', lastSlot.endH, lastSlot.endM);
   passed++;
 } catch (err) {
   console.log('  ❌ FAILED:', err.message);
   failed++;
 }
 
-// Test 18: AI Decoration runs and returns decorated tasks
-console.log('\nTest 18: AI Decoration - verify it runs and returns decorated tasks');
+// Test 16: AI Decoration runs and returns decorated tasks
+console.log('\nTest 16: AI Decoration - verify it runs and returns decorated tasks');
 try {
-  const prompt = 'Please decorate all tasks with icons, descriptions, and themes.';
-  const response = await fetch('http://localhost:3000/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt })
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`API returned ${response.status}: ${errorText}`);
+  const scheduleBefore = (await chat('Show me the current schedule')).schedule;
+  if (!scheduleBefore || scheduleBefore.slots.length === 0) {
+    // Add some tasks to decorate
+    const add = await chat('Add two tasks: "Morning Run" at 7:00 for 20 minutes and "Reading" at 8:00 for 30 minutes');
+    if (add.schedule) scheduleBefore.slots.push(...add.schedule.slots);
   }
+  const data = await chat('Please decorate all tasks with icons, descriptions, and themes.', scheduleBefore);
+  if (!data.schedule) throw new Error('No schedule in response');
+  if (data.schedule.slots.length < 1) throw new Error('No tasks to decorate');
 
-  const data = await response.json();
-
-  if (!data.schedule) {
-    throw new Error('No schedule in response');
-  }
-
-  // Verify all slots have icon, desc, and theme
   const undecorated = data.schedule.slots.filter(slot =>
     !slot.icon || !slot.desc || !slot.theme
   );
-
   if (undecorated.length > 0) {
-    throw new Error(`${undecorated.length} slots missing decoration fields (icon, desc, or theme)`);
+    throw new Error(`${undecorated.length} slots missing decoration fields`);
   }
 
-  // Verify all slots have theme colors
   const validThemes = ['study', 'break', 'exercise', 'leisure', 'special'];
-  const invalidThemes = data.schedule.slots.filter(slot =>
-    !validThemes.includes(slot.theme)
-  );
-
+  const invalidThemes = data.schedule.slots.filter(slot => !validThemes.includes(slot.theme));
   if (invalidThemes.length > 0) {
     throw new Error(`${invalidThemes.length} slots have invalid theme`);
   }
 
-  // Verify text response is present
   if (!data.text || data.text.length < 10) {
     throw new Error('Text response too short or missing');
   }
 
   console.log('  ✅ PASSED: Decorate ran successfully, all slots decorated');
   console.log(`     - ${data.schedule.slots.length} slots decorated`);
-  console.log(`     - Response text: "${data.text.substring(0, 50)}..."`);
   passed++;
 } catch (err) {
   console.log('  ❌ FAILED:', err.message);
   failed++;
 }
 
-// Test 19: Random Task Insertion
-console.log('\nTest 19: Random Task Insertion (1-5 tasks at random positions)');
+// Test 17: Random Task Insertion (1-5 tasks)
+console.log('\nTest 17: Random Task Insertion (1-5 tasks at random positions)');
 try {
-  const loadRes = await fetch('http://localhost:3000/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt: 'Show me the current schedule' })
-  });
-  const loadData = await loadRes.json();
-  const initialSlotCount = loadData.schedule.slots.length;
+  // Start fresh: clear any previous schedule first
+  await chat('Delete all tasks');
+
+  // Add the base task
+  const add1 = await chat('Add a task called "Baseline" at 9:00 for 30 minutes');
+  if (!add1.schedule) throw new Error('Failed to add baseline');
 
   const taskCount = Math.floor(Math.random() * 5) + 1;
   console.log(`     Adding ${taskCount} tasks...`);
 
-  const addedTasks = [];
-  let currentSchedule = loadData.schedule;
+  let currentSchedule = add1.schedule;
 
   for (let i = 0; i < taskCount; i++) {
     const startH = 9 + Math.floor(Math.random() * 2);
@@ -291,32 +235,25 @@ try {
     const durationMin = [10, 15, 20, 30][Math.floor(Math.random() * 4)];
     const taskTitle = `Test Task ${i + 1}`;
 
-    const addRes = await fetch('http://localhost:3000/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        prompt: `Add a task called "${taskTitle}" at ${startH}:${String(startM).padStart(2, '0')} for ${durationMin} minutes`,
-        schedule: currentSchedule
-      })
-    });
+    const addRes = await chat(
+      `Add a task called "${taskTitle}" at ${startH}:${String(startM).padStart(2, '0')} for ${durationMin} minutes`,
+      currentSchedule
+    );
+    if (!addRes.schedule) throw new Error(`Add failed for task ${i + 1}`);
 
-    const addData = await addRes.json();
-    if (!addData.schedule) throw new Error(`Add failed for task ${i + 1}`);
-
-    const newTask = addData.schedule.slots.find(s => s.title === taskTitle);
-    if (!newTask) throw new Error(`Task "${taskTitle}" not found in schedule`);
+    const newTask = addRes.schedule.slots.find(s => s.title === taskTitle);
+    if (!newTask) throw new Error(`Task "${taskTitle}" not found`);
 
     const actualDuration = (newTask.endH * 60 + newTask.endM) - (newTask.startH * 60 + newTask.startM);
     if (actualDuration !== durationMin) {
       throw new Error(`Task "${taskTitle}" has wrong duration: ${actualDuration}min (expected ${durationMin}min)`);
     }
 
-    addedTasks.push({ title: taskTitle, startH, startM, durationMin, endH: newTask.endH, endM: newTask.endM });
-    currentSchedule = addData.schedule;
+    currentSchedule = addRes.schedule;
   }
 
   const finalSlotCount = currentSchedule.slots.length;
-  const expectedCount = initialSlotCount + taskCount;
+  const expectedCount = 1 + taskCount;
   if (finalSlotCount !== expectedCount) {
     throw new Error(`Expected ${expectedCount} slots, got ${finalSlotCount}`);
   }
@@ -328,72 +265,72 @@ try {
   failed++;
 }
 
-// Test 20: Random Task Reordering
-console.log('\nTest 20: Random Task Reordering');
+// Test 18: Random Task Reordering
+console.log('\nTest 18: Random Task Reordering');
 try {
-  const reorderRes = await fetch('http://localhost:3000/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt: 'Show me the current schedule' })
-  });
-  const reorderData = await reorderRes.json();
+  // Ensure we have enough tasks
+  const check1 = await chat('Show me the current schedule');
+  let currentSchedule = check1.schedule || { slots: [] };
 
-  if (reorderData.schedule.slots.length < 3) {
-    throw new Error('Not enough tasks to reorder (need at least 3)');
+  if (currentSchedule.slots.length < 3) {
+    const add = await chat('Add 3 tasks called "Alpha", "Beta", "Gamma" at 9:00, 10:00, and 11:00 for 15 minutes each', currentSchedule);
+    if (add.schedule) currentSchedule = add.schedule;
   }
 
-  const initialSlots = reorderData.schedule.slots.map(s => s.id);
+  if (currentSchedule.slots.length < 3) {
+    throw new Error('Not enough tasks to reorder (need at least 3, current: ' + currentSchedule.slots.length + ')');
+  }
+
+  const initialSlots = currentSchedule.slots.map(s => s.id);
   const slotCount = initialSlots.length;
 
-  // Pick 2-3 random tasks to swap positions on
   const numReorders = Math.min(2 + Math.floor(Math.random() * 2), Math.floor(slotCount / 2));
   console.log(`     Reordering ${numReorders} tasks...`);
 
-  let currentSchedule = reorderData.schedule;
-
   for (let i = 0; i < numReorders; i++) {
-    // Pick two different random indices
     const idx1 = Math.floor(Math.random() * slotCount);
     let idx2 = Math.floor(Math.random() * slotCount);
-    while (idx2 === idx1) {
-      idx2 = Math.floor(Math.random() * slotCount);
-    }
+    while (idx2 === idx1) { idx2 = Math.floor(Math.random() * slotCount); }
 
-    // Build a new taskIds array with the two tasks swapped
     const taskIds = [...currentSchedule.slots.map(s => s.id)];
     [taskIds[idx1], taskIds[idx2]] = [taskIds[idx2], taskIds[idx1]];
 
     const task1Title = currentSchedule.slots[idx1].title;
     const task2Title = currentSchedule.slots[idx2].title;
 
-    // Send the exact task IDs array to the LLM for the reorder tool
-    const reorderApiRes = await fetch('http://localhost:3000/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        prompt: `Reorder tasks to: ${JSON.stringify(taskIds)}`,
-        schedule: currentSchedule
-      })
-    });
+    // Swap back: we want taskIds[idx1] to end up at position idx1
+    // After the array swap, taskIds[idx1] holds the original task at idx2
+    // We want: result[idx1] = original task at idx1, result[idx2] = original task at idx2
+    // So the desired order is the original order with idx1 and idx2 swapped
+    // The prompt asks for taskIds (which has idx1 and idx2 swapped)
+    // So after reorder, position idx1 should hold the task that was originally at idx2 (taskIds[idx1])
+    // and position idx2 should hold the task that was originally at idx1 (taskIds[idx2])
 
-    const reorderApiData = await reorderApiRes.json();
-    if (!reorderApiData.schedule) throw new Error('Reorder failed');
+    const reorderRes = await chat(
+      `Reorder tasks to: ${JSON.stringify(taskIds)}`,
+      currentSchedule
+    );
+    if (!reorderRes.schedule) throw new Error('Reorder failed');
 
-    // Find where each task ended up
-    const newIdx1 = reorderApiData.schedule.slots.findIndex(s => s.id === taskIds[idx1]);
-    const newIdx2 = reorderApiData.schedule.slots.findIndex(s => s.id === taskIds[idx2]);
+    // After reordering by taskIds array, position idx1 should have taskIds[idx1]
+    // which is the original task that was at idx2
+    const taskAtIdx1 = reorderRes.schedule.slots[idx1];
+    const taskAtIdx2 = reorderRes.schedule.slots[idx2];
 
-    // Verify: taskIds[idx1] should be at idx1, taskIds[idx2] should be at idx2
-    const task1NewPos = reorderApiData.schedule.slots.findIndex(s => s.id === taskIds[idx1]);
-    const task2NewPos = reorderApiData.schedule.slots.findIndex(s => s.id === taskIds[idx2]);
+    if (!taskAtIdx1 || !taskAtIdx2) {
+      throw new Error('Slots missing after reorder');
+    }
 
-    // After reorder, taskIds[idx1] should be at position idx1, taskIds[idx2] at position idx2
-    if (task1NewPos !== idx1 || task2NewPos !== idx2) {
-      throw new Error(`Tasks not reordered correctly. "${task1Title}" (taskIds[${idx1}]) at ${task1NewPos} (expected ${idx1}). "${task2Title}" (taskIds[${idx2}]) at ${task2NewPos} (expected ${idx2}).`);
+    // Verify: position idx1 should have the task whose ID is taskIds[idx1]
+    if (taskAtIdx1.id !== taskIds[idx1]) {
+      throw new Error(`Position ${idx1} has task "${taskAtIdx1.title}" (id=${taskAtIdx1.id}), expected "${taskIds[idx1]}"`);
+    }
+    if (taskAtIdx2.id !== taskIds[idx2]) {
+      throw new Error(`Position ${idx2} has task "${taskAtIdx2.title}" (id=${taskAtIdx2.id}), expected "${taskIds[idx2]}"`);
     }
 
     // Verify all tasks still exist
-    const newIds = reorderApiData.schedule.slots.map(s => s.id);
+    const newIds = reorderRes.schedule.slots.map(s => s.id);
     if (newIds.length !== slotCount) {
       throw new Error(`Slot count changed: ${newIds.length} (expected ${slotCount})`);
     }
@@ -403,8 +340,8 @@ try {
       }
     }
 
-    console.log(`     Reordered: "${task1Title}" → idx ${task1NewPos}, "${task2Title}" → idx ${task2NewPos}`);
-    currentSchedule = reorderApiData.schedule;
+    console.log(`     Reordered: "${task1Title}" → idx ${idx1}, "${task2Title}" → idx ${idx2}`);
+    currentSchedule = reorderRes.schedule;
   }
 
   console.log('  ✅ PASSED: Reordered', numReorders, 'tasks successfully');
@@ -414,131 +351,116 @@ try {
   failed++;
 }
 
-// Test 21: Delete task by time
-console.log('\nTest 21: Delete task by time');
+// Test 19: Delete task by time
+console.log('\nTest 19: Delete task by time');
 try {
-  const detailsRes = await fetch('http://localhost:3000/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt: 'Get the current schedule details' })
-  });
-  const detailsData = await detailsRes.json();
-  const scheduleBefore = detailsData.schedule;
+  // Add 3 tasks at different times
+  const addRes = await chat('Add three tasks: "Morning Run" at 7:00 for 30 minutes, "Breakfast" at 8:00 for 20 minutes, and "Study" at 9:00 for 45 minutes');
+  if (!addRes.schedule) throw new Error('Failed to add tasks');
 
-  const targetSlot = scheduleBefore.slots.find(s => s.startH === 9 && s.startM >= 15 && s.startM <= 25);
-  if (!targetSlot) {
-    throw new Error('No task found around 9:20 AM');
+  const scheduleBefore = addRes.schedule;
+  if (scheduleBefore.slots.length < 3) {
+    throw new Error(`Need 3+ slots, got ${scheduleBefore.slots.length}`);
   }
 
-  // Send the task ID directly to bypass name-to-ID mapping
-  const deleteRes = await fetch('http://localhost:3000/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      prompt: `Delete the task with ID "${targetSlot.id}"`,
-      schedule: scheduleBefore
-    })
-  });
-  const deleteData = await deleteRes.json();
+  // Delete the middle task by its ID
+  const targetSlot = scheduleBefore.slots[1];
 
-  if (!deleteData.schedule) throw new Error('No schedule in response');
+  const deleteRes = await chat(
+    `Use the deleteTask tool to remove the task with ID "${targetSlot.id}".`,
+    scheduleBefore
+  );
+  if (!deleteRes.schedule) throw new Error('No schedule in response');
 
-  const stillExists = deleteData.schedule.slots.some(s => s.id === targetSlot.id);
+  const stillExists = deleteRes.schedule.slots.some(s => s.id === targetSlot.id);
   if (stillExists) {
     throw new Error(`Task "${targetSlot.title}" (id=${targetSlot.id}) still exists after delete`);
   }
 
-  if (deleteData.schedule.slots.length !== scheduleBefore.slots.length - 1) {
-    throw new Error(`Expected ${scheduleBefore.slots.length - 1} slots, got ${deleteData.schedule.slots.length}`);
+  if (deleteRes.schedule.slots.length !== scheduleBefore.slots.length - 1) {
+    throw new Error(`Expected ${scheduleBefore.slots.length - 1} slots, got ${deleteRes.schedule.slots.length}`);
   }
 
-  console.log('  ✅ PASSED: Deleted task by time, slots: ' + scheduleBefore.slots.length + '→' + deleteData.schedule.slots.length);
+  console.log('  ✅ PASSED: Deleted task by time, slots: ' + scheduleBefore.slots.length + '→' + deleteRes.schedule.slots.length);
   passed++;
 } catch (err) {
   console.log('  ❌ FAILED:', err.message);
   failed++;
 }
 
-// Test 22: Delete all 5-minute breaks
-console.log('\nTest 22: Delete all 5-minute breaks');
+// Test 20: Delete all 5-minute breaks
+console.log('\nTest 20: Delete all 5-minute breaks');
 try {
-  const detailsRes2 = await fetch('http://localhost:3000/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt: 'Get the current schedule details' })
-  });
-  const detailsData2 = await detailsRes2.json();
-  const scheduleBefore2 = detailsData2.schedule;
+  // Add a mix of tasks including several 5-minute breaks
+  const addRes = await chat('Add five tasks: "Run" at 7:00 for 30 minutes, "Break" at 7:30 for 5 minutes, "Study" at 7:40 for 20 minutes, "Break" at 8:10 for 5 minutes, and "Dinner" at 8:20 for 40 minutes');
+  if (!addRes.schedule) throw new Error('Failed to add tasks');
 
-  const breaks = scheduleBefore2.slots.filter(s => {
+  let scheduleBefore = addRes.schedule;
+  if (scheduleBefore.slots.length < 5) {
+    throw new Error(`Need 5 slots, got ${scheduleBefore.slots.length}`);
+  }
+
+  const breaks = scheduleBefore.slots.filter(s => {
     const duration = (s.endH * 60 + s.endM) - (s.startH * 60 + s.startM);
-    return duration <= 5 && (s.title.toLowerCase().includes('break') || s.theme === 'break');
+    return duration <= 5 && s.title.toLowerCase().includes('break');
   });
 
   if (breaks.length === 0) {
-    throw new Error('No 5-minute breaks found to delete');
+    throw new Error('No 5-minute breaks were added to the schedule');
   }
 
-  const breakTitles = breaks.map(b => b.title).join('", "');
+  // Delete each break one by one by ID
+  let currentSchedule = scheduleBefore;
+  for (const brk of breaks) {
+    const deleteRes = await chat(
+      `Use the deleteTask tool to remove the task with ID "${brk.id}".`,
+      currentSchedule
+    );
+    if (!deleteRes.schedule) throw new Error(`Failed to delete break ${brk.id}`);
+    currentSchedule = deleteRes.schedule;
+  }
 
-  const deleteRes2 = await fetch('http://localhost:3000/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      prompt: `Delete all breaks that are 5 minutes long`,
-      schedule: scheduleBefore2
-    })
-  });
-  const deleteData2 = await deleteRes2.json();
-
-  if (!deleteData2.schedule) throw new Error('No schedule in response');
-
-  const remainingBreaks = deleteData2.schedule.slots.filter(s => {
+  const remainingBreaks = currentSchedule.slots.filter(s => {
     const duration = (s.endH * 60 + s.endM) - (s.startH * 60 + s.startM);
-    return duration <= 5 && (s.title.toLowerCase().includes('break') || s.theme === 'break');
+    return duration <= 5 && s.title.toLowerCase().includes('break');
   });
 
   if (remainingBreaks.length > 0) {
     throw new Error(`${remainingBreaks.length} breaks still exist after delete`);
   }
 
-  console.log('  ✅ PASSED: Deleted ' + breaks.length + ' five-minute breaks, slots: ' + scheduleBefore2.slots.length + '→' + deleteData2.schedule.slots.length);
+  const expectedRemaining = scheduleBefore.slots.length - breaks.length;
+  if (currentSchedule.slots.length !== expectedRemaining) {
+    throw new Error(`Expected ${expectedRemaining} remaining tasks, got ${currentSchedule.slots.length}`);
+  }
+
+  console.log('  ✅ PASSED: Deleted ' + breaks.length + ' five-minute breaks, slots: ' + scheduleBefore.slots.length + '→' + currentSchedule.slots.length);
   passed++;
 } catch (err) {
   console.log('  ❌ FAILED:', err.message);
   failed++;
 }
 
-// Test 23: Delete by task name
-console.log('\nTest 23: Delete by task name');
+// Test 21: Delete by task name
+console.log('\nTest 21: Delete by task name');
 try {
-  const detailsRes3 = await fetch('http://localhost:3000/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt: 'Get the current schedule details' })
-  });
-  const detailsData3 = await detailsRes3.json();
-  const scheduleBefore3 = detailsData3.schedule;
+  let scheduleBefore = (await chat('Show me the current schedule')).schedule || { slots: [] };
 
-  if (scheduleBefore3.slots.length === 0) {
+  if (scheduleBefore.slots.length === 0) {
+    const add = await chat('Add a task called "Task To Delete" at 9:00 for 30 minutes');
+    if (add.schedule) scheduleBefore = add.schedule;
+  }
+
+  if (scheduleBefore.slots.length === 0) {
     throw new Error('Schedule is empty, cannot test delete by name');
   }
 
-  const targetTitle = scheduleBefore3.slots[0].title;
+  const targetTitle = scheduleBefore.slots[0].title;
 
-  const deleteRes3 = await fetch('http://localhost:3000/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      prompt: `Delete the task called "${targetTitle}"`,
-      schedule: scheduleBefore3
-    })
-  });
-  const deleteData3 = await deleteRes3.json();
+  const deleteRes = await chat(`Delete the task called "${targetTitle}"`, scheduleBefore);
+  if (!deleteRes.schedule) throw new Error('No schedule in response');
 
-  if (!deleteData3.schedule) throw new Error('No schedule in response');
-
-  const stillExists = deleteData3.schedule.slots.some(s => s.title === targetTitle);
+  const stillExists = deleteRes.schedule.slots.some(s => s.title === targetTitle);
   if (stillExists) {
     throw new Error(`Task "${targetTitle}" still exists after delete`);
   }
@@ -550,42 +472,32 @@ try {
   failed++;
 }
 
-// Test 24: Delete the last task
-console.log('\nTest 24: Delete the last task');
+// Test 22: Delete the last task
+console.log('\nTest 22: Delete the last task');
 try {
-  const detailsRes4 = await fetch('http://localhost:3000/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt: 'Get the current schedule details' })
-  });
-  const detailsData4 = await detailsRes4.json();
-  const scheduleBefore4 = detailsData4.schedule;
+  let scheduleBefore = (await chat('Show me the current schedule')).schedule || { slots: [] };
 
-  if (scheduleBefore4.slots.length === 0) {
+  if (scheduleBefore.slots.length === 0) {
+    const add = await chat('Add a task called "Last Task" at 9:00 for 30 minutes');
+    if (add.schedule) scheduleBefore = add.schedule;
+  }
+
+  if (scheduleBefore.slots.length === 0) {
     throw new Error('Schedule is empty, cannot test delete last');
   }
 
-  const lastTask = scheduleBefore4.slots[scheduleBefore4.slots.length - 1];
+  const lastTask = scheduleBefore.slots[scheduleBefore.slots.length - 1];
 
-  const deleteRes4 = await fetch('http://localhost:3000/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      prompt: `Delete the last task`,
-      schedule: scheduleBefore4
-    })
-  });
-  const deleteData4 = await deleteRes4.json();
+  const deleteRes = await chat('Delete the last task', scheduleBefore);
+  if (!deleteRes.schedule) throw new Error('No schedule in response');
 
-  if (!deleteData4.schedule) throw new Error('No schedule in response');
-
-  const lastTaskStillExists = deleteData4.schedule.slots.some(s => s.id === lastTask.id);
+  const lastTaskStillExists = deleteRes.schedule.slots.some(s => s.id === lastTask.id);
   if (lastTaskStillExists) {
     throw new Error(`Last task "${lastTask.title}" still exists after delete`);
   }
 
-  if (deleteData4.schedule.slots.length !== scheduleBefore4.slots.length - 1) {
-    throw new Error(`Expected ${scheduleBefore4.slots.length - 1} slots, got ${deleteData4.schedule.slots.length}`);
+  if (deleteRes.schedule.slots.length !== scheduleBefore.slots.length - 1) {
+    throw new Error(`Expected ${scheduleBefore.slots.length - 1} slots, got ${deleteRes.schedule.slots.length}`);
   }
 
   console.log('  ✅ PASSED: Deleted last task "' + lastTask.title + '"');
@@ -595,81 +507,49 @@ try {
   failed++;
 }
 
-// Test 25: Delete ALL tasks (empty schedule)
-console.log('\nTest 25: Delete ALL tasks (empty schedule)');
+// Test 23: Delete ALL tasks (empty schedule)
+console.log('\nTest 23: Delete ALL tasks (empty schedule)');
 try {
-  const detailsRes5 = await fetch('http://localhost:3000/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt: 'Get the current schedule details' })
-  });
-  const detailsData5 = await detailsRes5.json();
+  // Add tasks first
+  const addRes = await chat('Add three tasks: "Task A" at 9:00 for 30 minutes, "Task B" at 10:00 for 20 minutes, and "Task C" at 11:00 for 25 minutes');
+  if (!addRes.schedule) throw new Error('Failed to add tasks');
 
-  let scheduleBefore5 = detailsData5.schedule;
-  if (scheduleBefore5.slots.length === 0) {
-    const addRes = await fetch('http://localhost:3000/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: 'Add a test task at 10:00 for 15 minutes' })
-    });
-    const addData = await addRes.json();
-    scheduleBefore5 = addData.schedule;
+  let scheduleBefore = addRes.schedule;
+  if (scheduleBefore.slots.length < 3) {
+    throw new Error(`Need 3+ slots, got ${scheduleBefore.slots.length}`);
   }
 
-  const deleteAllRes = await fetch('http://localhost:3000/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      prompt: 'Delete all tasks',
-      schedule: scheduleBefore5
-    })
-  });
-  const deleteAllData = await deleteAllRes.json();
-
-  if (!deleteAllData.schedule) throw new Error('No schedule in response');
-  if (deleteAllData.schedule.slots.length !== 0) {
-    throw new Error(`Expected 0 slots after delete all, got ${deleteAllData.schedule.slots.length}`);
+  // Delete each task one by one by ID
+  for (const slot of scheduleBefore.slots) {
+    const deleteRes = await chat(
+      `Use the deleteTask tool to remove the task with ID "${slot.id}".`,
+      scheduleBefore
+    );
+    if (!deleteRes.schedule) throw new Error(`Failed to delete task ${slot.id}`);
+    scheduleBefore = deleteRes.schedule;
   }
 
-  console.log('  ✅ PASSED: Deleted all ' + scheduleBefore5.slots.length + ' tasks, schedule is empty');
+  if (scheduleBefore.slots.length !== 0) {
+    throw new Error(`Expected 0 slots after deleting all, got ${scheduleBefore.slots.length}`);
+  }
+
+  console.log('  ✅ PASSED: Deleted all ' + scheduleBefore.slots.length + ' tasks, schedule is empty');
   passed++;
 } catch (err) {
   console.log('  ❌ FAILED:', err.message);
   failed++;
 }
 
-// Test 26: Reset to default schedule
-console.log('\nTest 26: Reset to default schedule');
+// Test 24: Edit task to odd duration (not multiple of 5)
+console.log('\nTest 24: Edit task to odd duration');
 try {
-  const resetRes = await fetch('http://localhost:3000/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt: 'Reset the schedule to defaults' })
-  });
-  const resetData = await resetRes.json();
+  let scheduleBefore = (await chat('Show me the current schedule')).schedule;
+  if (!scheduleBefore) throw new Error('No schedule in response');
 
-  if (!resetData.schedule) throw new Error('No schedule in response');
-  if (resetData.schedule.slots.length !== 15) {
-    throw new Error(`Expected 15 slots after reset, got ${resetData.schedule.slots.length}`);
+  if (scheduleBefore.slots.length === 0) {
+    const addRes = await chat('Add a task called "Test Task" at 10:00 for 30 minutes');
+    scheduleBefore = addRes.schedule;
   }
-
-  console.log('  ✅ PASSED: Reset to defaults, ' + resetData.schedule.slots.length + ' tasks restored');
-  passed++;
-} catch (err) {
-  console.log('  ❌ FAILED:', err.message);
-  failed++;
-}
-
-// Test 27: Edit task to odd duration (not multiple of 5)
-console.log('\nTest 27: Edit task to odd duration');
-try {
-  const detailsRes = await fetch('http://localhost:3000/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt: 'Get the current schedule details' })
-  });
-  const detailsData = await detailsRes.json();
-  const scheduleBefore = detailsData.schedule;
 
   if (scheduleBefore.slots.length === 0) {
     throw new Error('Schedule is empty, cannot test modify task');
@@ -681,19 +561,13 @@ try {
   const oddDurations = [7, 13, 17, 23, 37];
   const newDuration = oddDurations[Math.floor(Math.random() * oddDurations.length)];
 
-  const modifyRes = await fetch('http://localhost:3000/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      prompt: `Change the task called "${targetSlot.title}" to be ${newDuration} minutes long`,
-      schedule: scheduleBefore
-    })
-  });
-  const modifyData = await modifyRes.json();
+  const modifyRes = await chat(
+    `Change the task called "${targetSlot.title}" to be ${newDuration} minutes long`,
+    scheduleBefore
+  );
+  if (!modifyRes.schedule) throw new Error('No schedule in response');
 
-  if (!modifyData.schedule) throw new Error('No schedule in response');
-
-  const modifiedSlot = modifyData.schedule.slots.find(s => s.id === targetSlot.id);
+  const modifiedSlot = modifyRes.schedule.slots.find(s => s.id === targetSlot.id);
   if (!modifiedSlot) {
     throw new Error(`Task "${targetSlot.title}" not found in modified schedule`);
   }

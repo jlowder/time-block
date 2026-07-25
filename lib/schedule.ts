@@ -1,206 +1,12 @@
 import { ScheduleData, TimeBlock } from './types';
 
-// ── Default 15-slot schedule ──────────────────────────────────────────────────
+// ── Unique ID generation ──────────────────────────────────────────────────────
 
-const defaultSchedule: ScheduleData = {
-  slots: [
-    {
-      id: 'slot-1',
-      startH: 8,
-      startM: 0,
-      endH: 9,
-      endM: 0,
-      title: 'Puzzles & Newsletters',
-      icon: '🧩',
-      theme: 'leisure',
-      desc: 'Solve brain teasers and catch up on curated newsletters.',
-      badge: '1h',
-      badgeClass: 'badge-special',
-    },
-    {
-      id: 'slot-2',
-      startH: 9,
-      startM: 0,
-      endH: 9,
-      endM: 5,
-      title: 'Break',
-      icon: '🌅',
-      theme: 'break',
-      desc: 'Step outside for fresh air and a brief mental break.',
-      badge: '5min',
-      badgeClass: 'badge-break',
-    },
-    {
-      id: 'slot-3',
-      startH: 9,
-      startM: 5,
-      endH: 9,
-      endM: 20,
-      title: 'CourseBox - React and JSX',
-      icon: '⚛️',
-      theme: 'study',
-      desc: 'Learn React fundamentals and JSX syntax through interactive lessons.',
-      badge: '15min',
-      badgeClass: 'badge-study',
-    },
-    {
-      id: 'slot-4',
-      startH: 9,
-      startM: 20,
-      endH: 9,
-      endM: 25,
-      title: 'Break',
-      icon: '🌅',
-      theme: 'break',
-      desc: 'Step outside for fresh air and a brief mental break.',
-      badge: '5min',
-      badgeClass: 'badge-break',
-    },
-    {
-      id: 'slot-5',
-      startH: 9,
-      startM: 25,
-      endH: 9,
-      endM: 45,
-      title: 'LLMs From Scratch',
-      icon: '🤖',
-      theme: 'study',
-      desc: 'Build and understand large language models from the ground up.',
-      badge: '20min',
-      badgeClass: 'badge-study',
-    },
-    {
-      id: 'slot-6',
-      startH: 9,
-      startM: 45,
-      endH: 9,
-      endM: 50,
-      title: 'Break',
-      icon: '🌅',
-      theme: 'break',
-      desc: 'Step outside for fresh air and a brief mental break.',
-      badge: '5min',
-      badgeClass: 'badge-break',
-    },
-    {
-      id: 'slot-7',
-      startH: 9,
-      startM: 50,
-      endH: 10,
-      endM: 10,
-      title: 'Quantum Programming',
-      icon: '🔮',
-      theme: 'study',
-      desc: 'Explore quantum computing concepts and write your first quantum algorithms.',
-      badge: '20min',
-      badgeClass: 'badge-study',
-    },
-    {
-      id: 'slot-8',
-      startH: 10,
-      startM: 10,
-      endH: 10,
-      endM: 15,
-      title: 'Break',
-      icon: '🌅',
-      theme: 'break',
-      desc: 'Step outside for fresh air and a brief mental break.',
-      badge: '5min',
-      badgeClass: 'badge-break',
-    },
-    {
-      id: 'slot-9',
-      startH: 10,
-      startM: 15,
-      endH: 10,
-      endM: 25,
-      title: 'Stretching Session 1',
-      icon: '🧘',
-      theme: 'exercise',
-      desc: 'Perform gentle stretches to loosen up your muscles.',
-      badge: '10min',
-      badgeClass: 'badge-exercise',
-    },
-    {
-      id: 'slot-10',
-      startH: 10,
-      startM: 25,
-      endH: 10,
-      endM: 30,
-      title: 'Break',
-      icon: '🌅',
-      theme: 'break',
-      desc: 'Step outside for fresh air and a brief mental break.',
-      badge: '5min',
-      badgeClass: 'badge-break',
-    },
-    {
-      id: 'slot-11',
-      startH: 10,
-      startM: 30,
-      endH: 11,
-      endM: 0,
-      title: 'Open Notebook - process Distillation Papers',
-      icon: '📓',
-      theme: 'study',
-      desc: 'Review and summarize key insights from recent distillation research papers.',
-      badge: '30min',
-      badgeClass: 'badge-study',
-    },
-    {
-      id: 'slot-12',
-      startH: 11,
-      startM: 0,
-      endH: 11,
-      endM: 5,
-      title: 'Break',
-      icon: '🌅',
-      theme: 'break',
-      desc: 'Step outside for fresh air and a brief mental break.',
-      badge: '5min',
-      badgeClass: 'badge-break',
-    },
-    {
-      id: 'slot-13',
-      startH: 11,
-      startM: 5,
-      endH: 11,
-      endM: 25,
-      title: 'Study Python Continuations',
-      icon: '🐍',
-      theme: 'study',
-      desc: 'Dive deeper into Python control flow and continuation patterns.',
-      badge: '20min',
-      badgeClass: 'badge-study',
-    },
-    {
-      id: 'slot-14',
-      startH: 11,
-      startM: 25,
-      endH: 11,
-      endM: 30,
-      title: 'Break',
-      icon: '🌅',
-      theme: 'break',
-      desc: 'Step outside for fresh air and a brief mental break.',
-      badge: '5min',
-      badgeClass: 'badge-break',
-    },
-    {
-      id: 'slot-15',
-      startH: 11,
-      startM: 30,
-      endH: 11,
-      endM: 45,
-      title: 'Stretching Session 2',
-      icon: '🤸',
-      theme: 'exercise',
-      desc: 'Complete a second round of targeted stretches to improve flexibility.',
-      badge: '15min',
-      badgeClass: 'badge-exercise',
-    },
-  ],
-};
+let idCounter = 0;
+export function generateTaskId(): string {
+  idCounter++;
+  return `slot-${Date.now()}-${idCounter}`;
+}
 
 // ── Persistence ───────────────────────────────────────────────────────────────
 
@@ -218,7 +24,7 @@ export function resetServerSchedule(): void {
 }
 
 export function getDefaultSchedule(): ScheduleData {
-  return JSON.parse(JSON.stringify(defaultSchedule));
+  return { slots: [] };
 }
 
 export function saveSchedule(data: ScheduleData): void {
@@ -232,19 +38,19 @@ export function saveSchedule(data: ScheduleData): void {
 export function loadSchedule(): ScheduleData {
   if (serverSchedule) return serverSchedule;
   try {
-    if (typeof window === 'undefined') return getDefaultSchedule();
+    if (typeof window === 'undefined') return { slots: [] };
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return getDefaultSchedule();
+    if (!raw) return { slots: [] };
     return JSON.parse(raw) as ScheduleData;
   } catch {
-    return getDefaultSchedule();
+    return { slots: [] };
   }
 }
 
 export function resetSchedule(): ScheduleData {
-  const fresh = getDefaultSchedule();
-  saveSchedule(fresh);
-  return fresh;
+  const empty: ScheduleData = { slots: [] };
+  saveSchedule(empty);
+  return empty;
 }
 
 // ── Time helpers ──────────────────────────────────────────────────────────────

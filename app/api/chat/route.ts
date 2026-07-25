@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getModelInstance, clearConfigCache } from '@/lib/llm';
 import * as schedule from '@/lib/schedule';
+import { generateTaskId } from '@/lib/schedule';
 import { getApiKey } from '@/lib/keyring';
 import type { ScheduleData, TimeBlock, ToolOutput } from '@/lib/types';
 
@@ -13,8 +14,7 @@ const SYSTEM_PROMPT = `You are a friendly, helpful AI assistant that manages a d
 ## Capabilities
 - Add new tasks to the schedule
 - Delete existing tasks
-- Reset the schedule to default tasks
-- Delete ALL tasks (leaving an empty schedule)
+
 - Get schedule details (IDs, times, titles, themes)
 - Reorder tasks by arranging them into a new sequence
 - Decorate tasks by assigning icons, descriptions, and themes
@@ -24,8 +24,6 @@ const SYSTEM_PROMPT = `You are a friendly, helpful AI assistant that manages a d
 You have these tools available:
 - **addTask**: Add a new task. Takes title, duration in minutes, and optional start time (hour + minute).
 - **deleteTask**: Remove a task by its ID (e.g., 'slot-1').
-- **resetTasks**: Reset the schedule back to the original default set of 15 tasks. Use this when the user says "reset schedule" or "restore defaults".
-- **deleteAllTasks**: Delete ALL tasks from the schedule, leaving an empty schedule. Use this ONLY when the user explicitly says "delete all tasks", "clear the schedule", or "remove everything". This is different from resetTasks.
 - **getScheduleDetails**: Get the current schedule details including all task IDs, titles, start/end times, durations, and themes. Call this FIRST before any delete or reorder operations to learn which tasks exist and their IDs.
 - **reorderTasks**: Reorder all tasks. Provide an array of task IDs in the desired order.
 - **decorateTasks**: Enrich all current tasks by assigning appropriate icons, descriptions, and themes. Use this when the user asks to "decorate", "add icons", "add descriptions", or "add themes" to their schedule.
@@ -41,11 +39,8 @@ You have these tools available:
 - The schedule is always provided in the context. Use it to answer questions about current tasks.
 
 ## ⚠️ CRITICAL RULES — READ CAREFULLY
-- NEVER call resetTasks unless the user EXPLICITLY says "reset the schedule", "restore defaults", or "start over"
-- NEVER call resetTasks as part of add, delete, or reorder operations
-- resetTasks should ONLY be called when the user explicitly wants to restore the original default schedule
 - When adding tasks between existing tasks, calculate the correct start times based on the current schedule (use the end time of the preceding task)
-- When deleting tasks, use deleteTask with the specific task ID — this removes only that one task, NOT resetTasks`;
+- When deleting tasks, use deleteTask with the specific task ID — this removes only that one task`;
 
 // ── Tool definitions ──────────────────────────────────────────────────────────
 
@@ -72,7 +67,7 @@ const addTaskTool = tool({
     const endH = Math.floor(endTime / 60);
     const endM = endTime % 60;
     const newSlot: TimeBlock = {
-      id: `slot-${Date.now()}`,
+      id: generateTaskId(),
       startH,
       startM,
       endH,
@@ -169,30 +164,6 @@ const getScheduleDetailsTool = tool({
         durationMin: (s.endH * 60 + s.endM) - (s.startH * 60 + s.startM),
       })),
     };
-  },
-});
-
-// Tool: Reset to default schedule (renamed from deleteAllTasks)
-const resetTasksTool = tool({
-  description:
-    '⚠️ CRITICAL: Only call this tool when the user EXPLICITLY says "reset the schedule", "restore defaults", or "start over". This tool restores the original 15 default tasks. DO NOT call this when adding, deleting, or reordering tasks. This should almost NEVER be called.',
-  inputSchema: z.object({}),
-  execute: async () => {
-    const fresh = schedule.resetSchedule();
-    schedule.setServerSchedule(fresh);
-    return { success: true, message: 'Schedule reset to defaults' };
-  },
-});
-
-// Tool: Delete ALL tasks (actual deletion, leaves empty schedule)
-const deleteAllTasksTool = tool({
-  description:
-    'Delete ALL tasks from the schedule, leaving an empty schedule. This is different from resetTasks which restores the default tasks. Use this when the user says "delete all tasks" or "clear the schedule".',
-  inputSchema: z.object({}),
-  execute: async () => {
-    const emptySchedule: ScheduleData = { slots: [] };
-    schedule.setServerSchedule(emptySchedule);
-    return { success: true, message: 'All tasks deleted' };
   },
 });
 
@@ -393,8 +364,7 @@ const tools = {
   decorateTasks: decorateTasksTool,
   modifyTask: modifyTaskTool,
   getScheduleDetails: getScheduleDetailsTool,
-  resetTasks: resetTasksTool,
-  deleteAllTasks: deleteAllTasksTool,
+
 };
 
 // ── POST handler ──────────────────────────────────────────────────────────────

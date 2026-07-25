@@ -12,10 +12,10 @@ The Interactive Daily Schedule is a web-based application for creating, managing
 
 | Operation | Description |
 |-----------|-------------|
-| **Load Default** | Initialize schedule with the predefined set of 15 time-blocked activities (Morning Warm-up through Wind Down). |
-| **Load from localStorage** | On app load, retrieve saved schedule from browser storage. If invalid or missing, fall back to default. |
+| **Load Default** | Initialize with an empty schedule. |
+| **Load from localStorage** | On app load, retrieve saved schedule from browser storage. If invalid or missing, fall back to an empty schedule. |
 | **Save to localStorage** | Persist all schedule slots to browser storage after any modification. |
-| **Reset to Default** | Discard all custom changes and restore the original 15-slot schedule. |
+| **Delete All** | Clear all tasks, leaving an empty schedule. |
 
 ### 2. Time-Block Structure
 
@@ -144,8 +144,7 @@ Formatted as: `Xh Ymin`, `Xh`, or `Ymin`.
 ```json
 {
   "endpoint": "https://api.openai.com/v1/chat/completions",
-  "model": "gpt-4o-mini",
-  "apiKey": "sk-..."
+  "model": "gpt-4o-mini"
 }
 ```
 
