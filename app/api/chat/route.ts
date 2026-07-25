@@ -1,8 +1,9 @@
 import { generateText, tool, isStepCount } from 'ai';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getModelInstance } from '@/lib/llm';
+import { getModelInstance, clearConfigCache } from '@/lib/llm';
 import * as schedule from '@/lib/schedule';
+import { getApiKey } from '@/lib/keyring';
 import type { ScheduleData, TimeBlock, ToolOutput } from '@/lib/types';
 
 // ── System prompt ─────────────────────────────────────────────────────────────
@@ -231,7 +232,7 @@ const decorateTasksTool = tool({
   inputSchema: z.object({}),
   execute: async () => {
     const currentSchedule = schedule.loadSchedule();
-    const apiKey = process.env.OPENAI_COMPATIBLE_API_KEY || 'omlx-om5hh4rsln2h3f8w';
+    const apiKey = (await getApiKey()) || 'omlx-om5hh4rsln2h3f8w';
 
     const prompt = `You are a schedule decorator. For each task below, assign an appropriate emoji icon, a brief description, and a theme. Respond with ONLY a JSON array (no markdown, no explanation) in this exact format:
 [{"id":"slot-1","icon":"🧩","desc":"A short description of this activity","theme":"study"}]
@@ -409,8 +410,11 @@ export async function POST(req: NextRequest) {
     // Initialize server-side schedule state for tool execution
     schedule.setServerSchedule(currentSchedule);
 
+    // Get LLM provider (async — reads from keyring)
+    const model = await getModelInstance();
+
     const result = await generateText({
-      model: getModelInstance(),
+      model,
       system: SYSTEM_PROMPT,
       prompt: userPrompt,
       tools,
@@ -433,8 +437,9 @@ export async function POST(req: NextRequest) {
     // Re-read the schedule AFTER tool execution to get the updated state
     const updatedSchedule = schedule.loadSchedule();
 
-    // Clean up server schedule state for next request
+    // Clean up server schedule state and config cache for next request
     schedule.resetServerSchedule();
+    clearConfigCache();
 
     return NextResponse.json({
       text: result.text,

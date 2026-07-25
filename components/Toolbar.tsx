@@ -8,6 +8,7 @@ interface ToolbarProps {
   soundEnabled: boolean;
   onToggleSound: () => void;
   playChime: () => void;
+  onOpenSettings: () => void;
 }
 
 export function Toolbar({
@@ -18,6 +19,7 @@ export function Toolbar({
   soundEnabled,
   onToggleSound,
   playChime,
+  onOpenSettings,
 }: ToolbarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -110,6 +112,14 @@ export function Toolbar({
         📤 Export
       </button>
 
+      {/* Settings */}
+      <button
+        onClick={onOpenSettings}
+        className="flex items-center gap-1.5 rounded-lg px-2 py-1 sm:px-3 sm:py-1.5 text-xs font-medium text-gray-300 border border-gray-700 bg-gray-800/50 hover:bg-gray-700/50 transition-colors"
+        title="LLM settings"
+      >
+        ⚙️ Settings
+      </button>
     </div>
   );
 }

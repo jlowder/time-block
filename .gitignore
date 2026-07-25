@@ -29,9 +29,8 @@ coverage/
 active-schedule.json
 daily-schedule.json
 
-# AI service configuration (contains API key - use .llm-config.json.example as template)
+# AI service configuration (endpoint + model only - API key stored in system keyring)
 .llm-config.json
-.env.local
 
 # Imported schedule files (user uploads)
 *-import.json

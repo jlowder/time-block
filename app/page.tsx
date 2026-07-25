@@ -5,6 +5,7 @@ import { ScheduleView } from '@/components/ScheduleView';
 import { ChatInterface } from '@/components/ChatInterface';
 import { StatusBar } from '@/components/StatusBar';
 import { Toolbar } from '@/components/Toolbar';
+import { SettingsDialog } from '@/components/SettingsDialog';
 
 type Theme = 'study' | 'break' | 'exercise' | 'leisure' | 'special';
 interface TimeBlock {
@@ -56,6 +57,7 @@ export default function HomePage() {
   const [soundEnabled, setSoundEnabled] = useState(() => {
     try { return localStorage.getItem('soundEnabled') !== 'false'; } catch { return true; }
   });
+  const [showSettings, setShowSettings] = useState(false);
 
   const audioCtxRef = useRef<AudioContext | null>(null);
   const prevActiveIndexRef = useRef<number>(-1);
@@ -299,6 +301,7 @@ export default function HomePage() {
           soundEnabled={soundEnabled}
           onToggleSound={handleToggleSound}
           playChime={playChime}
+          onOpenSettings={() => setShowSettings(true)}
         />
       </div>
 
@@ -331,6 +334,9 @@ export default function HomePage() {
         slots={scheduleData.slots}
         isEditMode={isEditMode}
       />
+
+      {/* Settings Dialog */}
+      <SettingsDialog isOpen={showSettings} onClose={() => setShowSettings(false)} />
     </div>
   );
 }
