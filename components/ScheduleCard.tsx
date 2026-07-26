@@ -79,7 +79,7 @@ export function ScheduleCard({
 }: ScheduleCardProps) {
   const themeColor = getThemeColor(block.theme);
   const isPast = !isActive && index < activeSlotIndex;
-  const opacity = isEditMode ? 1 : (isActive || !isPast ? 1 : 0.65);
+  const opacity = isEditMode ? 1 : (isActive ? 1 : isPast ? 0.3 : 0.8);
 
   return (
     <div
@@ -131,7 +131,7 @@ export function ScheduleCard({
           boxShadow: isActive ? 'var(--shadow-md)' : 'var(--shadow-sm)',
         }}
       >
-        <div className="flex items-start gap-3 p-3.5 sm:p-4">
+        <div className={`flex items-start gap-3 ${isActive && !isEditMode ? 'p-4 sm:p-5' : 'p-3.5 sm:p-4'}`}>
           {/* Drag handle (edit mode only) */}
           {isEditMode && (
             <div className="pt-0.5 flex-shrink-0" style={{ color: 'var(--border-medium)' }} title="Drag to reorder">
@@ -148,10 +148,15 @@ export function ScheduleCard({
 
           {/* Icon */}
           <div
-            className={`w-11 h-11 flex-shrink-0 rounded-lg flex items-center justify-center text-xl transition-transform duration-300 ${isActive ? 'scale-125' : ''}`}
+            className={`flex-shrink-0 rounded-lg flex items-center justify-center transition-all duration-300 ${
+              isActive && !isEditMode ? 'w-14 h-14 text-2xl ring-2 ring-offset-2' : 'w-11 h-11 text-xl'
+            }`}
             style={{
               background: getThemeBg(block.theme),
               color: isActive ? 'var(--accent-gold)' : 'var(--text-primary)',
+              ...(isActive && !isEditMode ? {
+                boxShadow: `0 0 20px 4px var(--accent-gold-light)`,
+              } : {}),
             }}
           >
             {block.icon ?? '\u2022'}
@@ -163,7 +168,7 @@ export function ScheduleCard({
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2 mb-1">
                   <span
-                    className="text-[11px] font-medium tabular-nums"
+                    className={`font-medium tabular-nums ${isActive && !isEditMode ? 'text-xs font-bold' : 'text-[11px] font-medium'}`}
                     style={{ color: 'var(--text-muted)' }}
                   >
                     {formatTime24(block.startH, block.startM)}–{formatTime24(block.endH, block.endM)}
@@ -180,7 +185,7 @@ export function ScheduleCard({
                     </span>
                   )}
                 </div>
-                <h3 className="text-sm sm:text-base font-semibold leading-tight flex items-center" style={{ color: 'var(--text-primary)' }}>
+                <h3 className={`flex items-center ${isActive && !isEditMode ? 'text-lg sm:text-xl font-bold tracking-tight' : 'text-sm sm:text-base font-semibold'}`} style={{ color: 'var(--text-primary)' }}>
                   {block.title}
                   {isActive && (
                     <span className="inline-flex items-center gap-1 ml-2 px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider"
@@ -200,7 +205,9 @@ export function ScheduleCard({
                 </h3>
                 {block.desc && (
                   <p
-                    className="text-xs sm:text-sm leading-relaxed line-clamp-2 mt-1"
+                    className={`line-clamp-2 mt-1 transition-opacity duration-300 ${
+                      isActive && !isEditMode ? 'opacity-100' : !isActive ? 'opacity-30' : 'opacity-70'
+                    }`}
                     style={{ color: 'var(--text-secondary)' }}
                   >
                     {block.desc}

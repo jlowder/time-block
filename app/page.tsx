@@ -58,6 +58,7 @@ export default function HomePage() {
     try { return localStorage.getItem('soundEnabled') !== 'false'; } catch { return true; }
   });
   const [showSettings, setShowSettings] = useState(false);
+  const [calcTick, setCalcTick] = useState(0);
 
   const audioCtxRef = useRef<AudioContext | null>(null);
   const prevActiveIndexRef = useRef<number>(-1);
@@ -82,7 +83,7 @@ export default function HomePage() {
     if (!scheduleData || !scheduleData.slots) return;
     const index = calcActiveSlotIndex(scheduleData.slots);
     setActiveSlotIndex(index);
-  }, [scheduleData.slots, isEditMode]);
+  }, [scheduleData.slots, isEditMode, calcTick]);
 
   // Recalculate active slot every 30 seconds in view mode
   useEffect(() => {
@@ -95,7 +96,23 @@ export default function HomePage() {
     }, 30_000);
 
     return () => clearInterval(timer);
-  }, [scheduleData.slots, isEditMode]);
+  }, [scheduleData.slots, isEditMode, calcTick]);
+
+  // Handle tab visibility changes: immediately recalculate active slot when user
+  // returns to the tab, so transitions that occurred while hidden are detected
+  // (triggering chimes and visual updates).
+  useEffect(() => {
+    if (isEditMode) return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        setCalcTick(t => t + 1);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [isEditMode]);
 
   // Audio chime when active slot changes
   useEffect(() => {
@@ -108,57 +125,58 @@ export default function HomePage() {
       return;
     }
 
-    if (
-      lastActiveIndexRef.current !== activeSlotIndex &&
-      activeSlotIndex >= 0
-    ) {
+    const prevIndex = lastActiveIndexRef.current;
+    if (prevIndex !== activeSlotIndex) {
       try {
         if (!soundEnabled) return;
-        if (!audioCtxRef.current) {
-          audioCtxRef.current = new (
-            window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
-          )();
+        const finalSlotIndex = (scheduleData?.slots?.length ?? 0) - 1;
+        if (activeSlotIndex >= 0 || prevIndex === finalSlotIndex) {
+          if (!audioCtxRef.current) {
+            audioCtxRef.current = new (
+              window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+            )();
+          }
+          const ctx = audioCtxRef.current;
+          if (ctx.state === 'suspended') ctx.resume();
+
+          const notes = [523.25, 659.25, 783.99, 1046.50];
+          const now = ctx.currentTime;
+
+          notes.forEach((freq, i) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+
+            const noteStart = now + i * 0.15;
+            const noteEnd = noteStart + 0.12;
+
+            gain.gain.setValueAtTime(0, noteStart);
+            gain.gain.linearRampToValueAtTime(0.3, noteStart + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.01, noteEnd);
+
+            osc.start(noteStart);
+            osc.stop(noteEnd + 0.01);
+          });
+
+          const bellStart = now + notes.length * 0.15;
+          const bellOsc = ctx.createOscillator();
+          const bellGain = ctx.createGain();
+          bellOsc.connect(bellGain);
+          bellGain.connect(ctx.destination);
+          bellOsc.type = 'sine';
+          bellOsc.frequency.value = 880;
+
+          const bellEnd = bellStart + 0.5;
+          bellGain.gain.setValueAtTime(0, bellStart);
+          bellGain.gain.linearRampToValueAtTime(0.4, bellStart + 0.01);
+          bellGain.gain.exponentialRampToValueAtTime(0.01, bellEnd);
+
+          bellOsc.start(bellStart);
+          bellOsc.stop(bellEnd + 0.01);
         }
-        const ctx = audioCtxRef.current;
-        if (ctx.state === 'suspended') ctx.resume();
-
-        const notes = [523.25, 659.25, 783.99, 1046.50];
-        const now = ctx.currentTime;
-
-        notes.forEach((freq, i) => {
-          const osc = ctx.createOscillator();
-          const gain = ctx.createGain();
-          osc.connect(gain);
-          gain.connect(ctx.destination);
-          osc.type = 'sine';
-          osc.frequency.value = freq;
-
-          const noteStart = now + i * 0.15;
-          const noteEnd = noteStart + 0.12;
-
-          gain.gain.setValueAtTime(0, noteStart);
-          gain.gain.linearRampToValueAtTime(0.3, noteStart + 0.02);
-          gain.gain.exponentialRampToValueAtTime(0.01, noteEnd);
-
-          osc.start(noteStart);
-          osc.stop(noteEnd + 0.01);
-        });
-
-        const bellStart = now + notes.length * 0.15;
-        const bellOsc = ctx.createOscillator();
-        const bellGain = ctx.createGain();
-        bellOsc.connect(bellGain);
-        bellGain.connect(ctx.destination);
-        bellOsc.type = 'sine';
-        bellOsc.frequency.value = 880;
-
-        const bellEnd = bellStart + 0.5;
-        bellGain.gain.setValueAtTime(0, bellStart);
-        bellGain.gain.linearRampToValueAtTime(0.4, bellStart + 0.01);
-        bellGain.gain.exponentialRampToValueAtTime(0.01, bellEnd);
-
-        bellOsc.start(bellStart);
-        bellOsc.stop(bellEnd + 0.01);
       } catch {
         // Autoplay blocked
       }
