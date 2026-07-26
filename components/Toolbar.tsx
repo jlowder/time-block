@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { FilePlus, FolderOpen, SpeakerHigh, SpeakerX, Gear } from '@phosphor-icons/react';
 
 interface ToolbarProps {
   isEditMode: boolean;
@@ -44,13 +45,19 @@ export function Toolbar({
     e.target.value = '';
   };
 
-  const btnClass = (active?: boolean) => `flex items-center justify-center w-9 h-9 rounded-md text-sm font-medium transition-colors ${
-    active ? 'border' : 'border-transparent'
-  } ${isDecorating ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[var(--bg-surface-hover)]'}`;
+  const circularBtn = (active?: boolean) =>
+    `flex items-center justify-center rounded-full transition-all duration-150 ${
+      active ? 'border' : 'border-transparent'
+    } ${isDecorating ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[var(--bg-surface-hover)] active:scale-[0.96]'}`;
+
+  const pillBtn = (active?: boolean) =>
+    `flex items-center justify-center gap-1.5 rounded-full transition-all duration-150 ${
+      active ? 'border' : 'border-transparent'
+    } ${isDecorating ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[var(--bg-surface-hover)] active:scale-[0.96]'}`;
 
   return (
     <div
-      className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg border shadow-sm"
+      className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border shadow-sm"
       style={{
         background: 'var(--bg-surface)',
         borderColor: 'var(--border-subtle)',
@@ -66,13 +73,15 @@ export function Toolbar({
       />
 
       {/* Segmented control: View / Edit */}
-      <div className="flex rounded-md overflow-hidden border" style={{ borderColor: 'var(--border-subtle)' }}>
+      <div className="flex rounded-lg overflow-hidden border" style={{ borderColor: 'var(--border-subtle)' }}>
         <button
           onClick={() => !isDecorating && isEditMode && onToggleMode()}
-          className="px-3 py-1 text-xs font-medium transition-colors select-none"
+          className={`px-3 py-1.5 text-xs font-semibold transition-all duration-150 select-none ${
+            isEditMode ? '' : 'hover:bg-[var(--bg-surface-hover)]'
+          } ${isDecorating ? 'opacity-50 cursor-not-allowed' : ''} active:scale-[0.96]`}
           style={{
-            color: isEditMode ? 'var(--text-muted)' : 'var(--accent-indigo)',
-            background: isEditMode ? 'transparent' : 'var(--accent-gold-light)',
+            color: isEditMode ? 'var(--accent-indigo)' : 'var(--text-muted)',
+            background: isEditMode ? 'var(--accent-gold-light)' : 'transparent',
           }}
           disabled={isDecorating}
         >
@@ -80,11 +89,13 @@ export function Toolbar({
         </button>
         <button
           onClick={() => !isDecorating && !isEditMode && onToggleMode()}
-          className="px-3 py-1 text-xs font-medium transition-colors select-none border-l"
+          className={`px-3 py-1.5 text-xs font-semibold transition-all duration-150 select-none border-l ${
+            !isEditMode ? '' : 'hover:bg-[var(--bg-surface-hover)]'
+          } ${isDecorating ? 'opacity-50 cursor-not-allowed' : ''} active:scale-[0.96]`}
           style={{
             borderColor: 'var(--border-subtle)',
-            color: isEditMode ? 'var(--accent-indigo)' : 'var(--text-muted)',
-            background: isEditMode ? 'var(--accent-gold-light)' : 'transparent',
+            color: isEditMode ? 'var(--text-muted)' : 'var(--accent-indigo)',
+            background: isEditMode ? 'transparent' : 'var(--accent-gold-light)',
           }}
           disabled={isDecorating}
         >
@@ -94,80 +105,72 @@ export function Toolbar({
 
       {/* Divider */}
       <div
-        className="w-px h-4 mx-3"
+        className="w-px h-5 mx-1"
         style={{ background: 'var(--border-subtle)' }}
       />
 
       {/* Sound toggle */}
       <button
         onClick={() => {
+          if (isDecorating) return;
           onToggleSound();
           if (!soundEnabled) playChime();
         }}
-        className={`${btnClass()} ml-1`}
-        style={{ color: 'var(--text-secondary)' }}
+        className={circularBtn(soundEnabled)}
+        style={{ color: 'var(--text-secondary)', width: 34, height: 34 }}
         title={soundEnabled ? 'Mute' : 'Enable sound'}
         disabled={isDecorating}
       >
         {soundEnabled ? (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-            <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-            <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-          </svg>
+          <SpeakerHigh weight="fill" size={16} />
         ) : (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-            <line x1="23" y1="9" x2="17" y2="15" />
-            <line x1="17" y1="9" x2="23" y2="15" />
-          </svg>
+          <SpeakerX weight="fill" size={16} />
         )}
       </button>
 
       {/* Divider */}
       <div
-        className="w-px h-4 mx-3"
+        className="w-px h-5 mx-1"
         style={{ background: 'var(--border-subtle)' }}
       />
 
       {/* Import */}
       <button
-        onClick={handleFileClick}
-        className={`${btnClass()} ml-1`}
+        onClick={() => !isDecorating && handleFileClick()}
+        className={pillBtn()}
         style={{ color: 'var(--text-secondary)' }}
         disabled={isDecorating}
       >
-        Import
+        <FolderOpen weight="fill" size={14} />
+        <span className="text-xs font-medium">Import</span>
       </button>
 
       {/* Export */}
       <button
-        onClick={onExport}
-        className={`${btnClass()} ml-1`}
+        onClick={() => !isDecorating && onExport()}
+        className={pillBtn()}
         style={{ color: 'var(--text-secondary)' }}
         disabled={isDecorating}
       >
-        Export
+        <FilePlus weight="fill" size={14} />
+        <span className="text-xs font-medium">Export</span>
       </button>
 
       {/* Divider */}
       <div
-        className="w-px h-4 mx-3"
+        className="w-px h-5 mx-1"
         style={{ background: 'var(--border-subtle)' }}
       />
 
       {/* Settings */}
       <button
-        onClick={onOpenSettings}
-        className={btnClass()}
-        style={{ color: 'var(--text-secondary)' }}
+        onClick={() => !isDecorating && onOpenSettings()}
+        className={circularBtn()}
+        style={{ color: 'var(--text-secondary)', width: 34, height: 34 }}
         title="Settings"
         disabled={isDecorating}
       >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="3" />
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-        </svg>
+        <Gear size={16} />
       </button>
     </div>
   );
