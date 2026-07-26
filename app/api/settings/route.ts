@@ -49,6 +49,10 @@ export async function POST(req: NextRequest) {
 
     writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));
 
+    // Clear the LLM config cache so the next request reads the fresh config
+    const { clearConfigCache } = await import('@/lib/llm');
+    clearConfigCache();
+
     return NextResponse.json({ success: true, ...config });
   } catch (err) {
     return NextResponse.json({ error: String(err) }, { status: 500 });

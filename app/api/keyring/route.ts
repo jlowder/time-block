@@ -53,6 +53,10 @@ export async function POST(req: NextRequest) {
 
     await setPassword('time-block', 'llm-api-key', key);
 
+    // Clear cache so next request picks up the new key
+    const { clearConfigCache } = await import('@/lib/llm');
+    clearConfigCache();
+
     if (endpoint || model) {
       const { writeFileSync } = await import('fs');
       const configPath = resolve(process.cwd(), '.llm-config.json');
@@ -76,6 +80,11 @@ export async function DELETE() {
 
   try {
     await deletePassword('time-block', 'llm-api-key');
+
+    // Clear cache so next request picks up the removed key
+    const { clearConfigCache } = await import('@/lib/llm');
+    clearConfigCache();
+
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: 'Failed to remove key' }, { status: 500 });
