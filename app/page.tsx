@@ -6,6 +6,7 @@ import { ChatInterface } from '@/components/ChatInterface';
 import { StatusBar } from '@/components/StatusBar';
 import { Toolbar } from '@/components/Toolbar';
 import { SettingsDialog } from '@/components/SettingsDialog';
+import { ThemeLegend } from '@/components/ThemeLegend';
 
 type Theme = 'study' | 'break' | 'exercise' | 'leisure' | 'special';
 interface TimeBlock {
@@ -271,9 +272,9 @@ export default function HomePage() {
   }, [isEditMode]);
 
   return (
-    <div className="min-h-screen flex flex-col overflow-hidden bg-[var(--bg-page)]">
+    <div className="h-screen flex flex-col overflow-hidden bg-[var(--bg-page)]">
       {/* Header */}
-      <header className="pt-8 pb-4 px-4 text-center">
+      <header className="pt-8 pb-4 px-4 text-center flex-shrink-0">
         <h1 className="text-[42px] leading-tight font-bold tracking-tight text-[var(--text-primary)]">
           Time Block
         </h1>
@@ -281,7 +282,7 @@ export default function HomePage() {
       </header>
 
       {/* Toolbar */}
-      <div className="flex justify-center">
+      <div className="flex justify-center flex-shrink-0">
         <Toolbar
           isEditMode={isEditMode}
           onToggleMode={toggleEditMode}
@@ -295,38 +296,47 @@ export default function HomePage() {
         />
       </div>
 
-      {/* Main Content */}
-      <main className="flex-1 w-full max-w-[1200px] mx-auto px-4 flex flex-col">
-        {isEditMode ? (
-          <div className="flex-1 flex flex-col-reverse md:flex-row gap-4 min-h-0">
-            <div className="flex-1 min-w-0 min-h-0">
-              <ScheduleView
-                slots={scheduleData.slots}
-                activeSlotIndex={activeSlotIndex}
-                isEditMode={isEditMode}
-                isDecorating={isDecorating}
-                onSlotDragStart={onSlotDragStart}
-                onSlotDragOver={onSlotDragOver}
-                onSlotDragEnd={onSlotDragEnd}
-              />
-            </div>
-            <div className="w-full md:w-[420px] flex-shrink-0 flex flex-col max-h-[50vh] md:h-full">
-              <ChatInterface isVisible={isEditMode} scheduleData={scheduleData} onScheduleChange={onScheduleChange} />
-            </div>
+      {/* Main Content — scrollable area */}
+      <main className="flex-1 w-full max-w-[1200px] mx-auto pr-4 flex flex-col min-h-0 overflow-hidden">
+        <div className="flex flex-1 gap-10 min-h-0 overflow-y-auto pl-[20px]">
+          {/* Legend column — centered in left margin area */}
+          <div className="flex flex-col w-36 flex-shrink-0 sticky top-0">
+            <ThemeLegend />
           </div>
-        ) : (
-          <div className="flex-1">
-            <ScheduleView
-              slots={scheduleData.slots}
-              activeSlotIndex={activeSlotIndex}
-              isEditMode={isEditMode}
-              isDecorating={isDecorating}
-              onSlotDragStart={onSlotDragStart}
-              onSlotDragOver={onSlotDragOver}
-              onSlotDragEnd={onSlotDragEnd}
-            />
+          {/* Schedule content */}
+          <div className="flex-1 min-w-0 min-h-0">
+            {isEditMode ? (
+              <div className="flex flex-col-reverse md:flex-row gap-4 min-h-0">
+                <div className="flex-1 min-w-0 min-h-0">
+                  <ScheduleView
+                    slots={scheduleData.slots}
+                    activeSlotIndex={activeSlotIndex}
+                    isEditMode={isEditMode}
+                    isDecorating={isDecorating}
+                    onSlotDragStart={onSlotDragStart}
+                    onSlotDragOver={onSlotDragOver}
+                    onSlotDragEnd={onSlotDragEnd}
+                  />
+                </div>
+                <div className="w-full md:w-[420px] flex-shrink-0 flex flex-col max-h-[50vh] md:h-full">
+                  <ChatInterface isVisible={isEditMode} scheduleData={scheduleData} onScheduleChange={onScheduleChange} />
+                </div>
+              </div>
+            ) : (
+              <div className="flex-1">
+                <ScheduleView
+                  slots={scheduleData.slots}
+                  activeSlotIndex={activeSlotIndex}
+                  isEditMode={isEditMode}
+                  isDecorating={isDecorating}
+                  onSlotDragStart={onSlotDragStart}
+                  onSlotDragOver={onSlotDragOver}
+                  onSlotDragEnd={onSlotDragEnd}
+                />
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </main>
 
       {/* Status Bar */}
