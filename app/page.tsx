@@ -61,7 +61,9 @@ export default function HomePage() {
 
   const audioCtxRef = useRef<AudioContext | null>(null);
   const prevActiveIndexRef = useRef<number>(-1);
+  const lastActiveIndexRef = useRef<number | null>(null);
   const prevEditModeRef = useRef(isEditMode);
+  const hasMountedRef = useRef(false);
 
   // Load schedule from localStorage on mount
   useEffect(() => {
@@ -82,11 +84,32 @@ export default function HomePage() {
     setActiveSlotIndex(index);
   }, [scheduleData.slots, isEditMode]);
 
+  // Recalculate active slot every 30 seconds in view mode
+  useEffect(() => {
+    if (isEditMode) return;
+    if (!scheduleData || !scheduleData.slots) return;
+
+    const timer = setInterval(() => {
+      const index = calcActiveSlotIndex(scheduleData.slots);
+      setActiveSlotIndex(index);
+    }, 30_000);
+
+    return () => clearInterval(timer);
+  }, [scheduleData.slots, isEditMode]);
+
   // Audio chime when active slot changes
   useEffect(() => {
     if (isEditMode) return;
+
+    // Skip chime on mount — only play when active slot actually transitions
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      lastActiveIndexRef.current = activeSlotIndex;
+      return;
+    }
+
     if (
-      prevActiveIndexRef.current !== activeSlotIndex &&
+      lastActiveIndexRef.current !== activeSlotIndex &&
       activeSlotIndex >= 0
     ) {
       try {
@@ -140,8 +163,18 @@ export default function HomePage() {
         // Autoplay blocked
       }
     }
-    prevActiveIndexRef.current = activeSlotIndex;
+    lastActiveIndexRef.current = activeSlotIndex;
   }, [activeSlotIndex, soundEnabled]);
+
+  // Cleanup audio context on unmount
+  useEffect(() => {
+    return () => {
+      if (audioCtxRef.current) {
+        audioCtxRef.current.close();
+        audioCtxRef.current = null;
+      }
+    };
+  }, []);
 
   const toggleEditMode = useCallback(() => {
     setIsEditMode((prev) => !prev);

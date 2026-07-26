@@ -66,6 +66,7 @@ export function StatusBar({ activeSlotIndex, slots, isEditMode }: StatusBarProps
     theme: string | undefined;
   } | null>(null);
   const [remaining, setRemaining] = useState<string>('');
+  const [statusMessage, setStatusMessage] = useState<string>('');
 
   const activeSlotIndexRef = useRef(activeSlotIndex);
   const slotsRef = useRef(slots);
@@ -113,6 +114,31 @@ export function StatusBar({ activeSlotIndex, slots, isEditMode }: StatusBarProps
     return () => clearInterval(timer);
   }, []);
 
+  // Compute status message based on time of day
+  useEffect(() => {
+    if (!slots || slots.length === 0) {
+      setStatusMessage("Schedule hasn't started yet — ☕ relax");
+      return;
+    }
+
+    const now = new Date();
+    const currentMin = now.getHours() * 60 + now.getMinutes();
+    const firstSlot = slots![0];
+    const lastSlot = slots![slots.length - 1];
+    const firstSlotStart = firstSlot.startH * 60 + firstSlot.startM;
+    const lastSlotEnd = (lastSlot.endH ?? 23) * 60 + (lastSlot.endM ?? 59);
+
+    if (currentMin < firstSlotStart) {
+      setStatusMessage("Schedule hasn't started yet — ☕ relax");
+    } else if (currentMin >= lastSlotEnd) {
+      setStatusMessage('Activity block complete! 🎉');
+    } else if (activeSlotIndex < 0) {
+      setStatusMessage('Between activities');
+    } else {
+      setStatusMessage('');
+    }
+  }, [slots, activeSlotIndex]);
+
   // Sync refs
   useEffect(() => { activeSlotIndexRef.current = activeSlotIndex; }, [activeSlotIndex]);
   useEffect(() => { slotsRef.current = slots; }, [slots]);
@@ -131,29 +157,21 @@ export function StatusBar({ activeSlotIndex, slots, isEditMode }: StatusBarProps
     >
       {/* Left: Current activity */}
       <div className="flex items-center gap-2 min-w-0 flex-1">
-        {activeSlot ? (
-          <>
-            {/* Theme indicator dot */}
-            <div
-              className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-              style={{ background: themeColor }}
-            />
-            {/* Icon */}
-            <span className="text-sm flex-shrink-0" style={{ color: 'var(--text-secondary)' }}>
-              {activeSlot.icon}
-            </span>
-            {/* Title */}
-            <p
-              className="text-sm font-medium truncate"
-              style={{ color: 'var(--text-primary)' }}
-            >
-              {activeSlot.title}
-            </p>
-          </>
+        {statusMessage ? (
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent-gold)] opacity-60" />
+            <p className="text-xs text-[var(--text-muted)]">{statusMessage}</p>
+          </div>
         ) : (
-          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-            No active block
-          </p>
+          <div className="flex items-center gap-2">
+            {activeSlot && (
+              <>
+                <div className="w-1.5 h-1.5 rounded-full" style={{ background: themeColor }} />
+                <span>{activeSlot.icon}</span>
+                <p className="text-sm font-medium truncate">{activeSlot.title}</p>
+              </>
+            )}
+          </div>
         )}
       </div>
 

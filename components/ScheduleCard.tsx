@@ -108,14 +108,15 @@ export function ScheduleCard({
       </div>
 
       {/* Timeline connector */}
-      <div className="relative flex-shrink-0 w-3 pt-0.5">
+      <div className={`relative flex-shrink-0 w-3 pt-0.5 ${isActive ? 'animate-pulse' : ''}`}>
         {/* Card dot */}
         <div
-          className={`absolute left-1/2 -translate-x-1/2 rounded-full border-2 ${isActive ? 'w-3 h-3' : 'w-2.5 h-2.5'}`}
+          className={`absolute left-1/2 -translate-x-1/2 rounded-full border-2 transition-all duration-300 ${isActive ? 'w-3 h-3' : 'w-2.5 h-2.5'}`}
           style={{
             top: '3px',
             borderColor: isActive ? 'var(--accent-gold)' : themeColor,
             background: isActive ? 'var(--accent-gold-light)' : 'var(--bg-surface)',
+            ...(isActive ? { boxShadow: `0 0 8px 2px var(--accent-gold-light)` } : {}),
             zIndex: 1,
           }}
         />
@@ -126,7 +127,7 @@ export function ScheduleCard({
         className="flex-1 rounded-lg schedule-card"
         style={{
           background: isActive ? 'var(--accent-gold-light)' : 'var(--bg-surface)',
-          borderLeft: `4px solid ${themeColor}`,
+          borderLeft: `4px solid ${isActive ? 'var(--accent-gold)' : themeColor}`,
           boxShadow: isActive ? 'var(--shadow-md)' : 'var(--shadow-sm)',
         }}
       >
@@ -147,8 +148,11 @@ export function ScheduleCard({
 
           {/* Icon */}
           <div
-            className="w-11 h-11 flex-shrink-0 rounded-lg flex items-center justify-center text-xl"
-            style={{ background: getThemeBg(block.theme) }}
+            className={`w-11 h-11 flex-shrink-0 rounded-lg flex items-center justify-center text-xl transition-transform duration-300 ${isActive ? 'scale-125' : ''}`}
+            style={{
+              background: getThemeBg(block.theme),
+              color: isActive ? 'var(--accent-gold)' : 'var(--text-primary)',
+            }}
           >
             {block.icon ?? '\u2022'}
           </div>
@@ -176,8 +180,23 @@ export function ScheduleCard({
                     </span>
                   )}
                 </div>
-                <h3 className="text-sm sm:text-base font-semibold leading-tight" style={{ color: 'var(--text-primary)' }}>
+                <h3 className="text-sm sm:text-base font-semibold leading-tight flex items-center" style={{ color: 'var(--text-primary)' }}>
                   {block.title}
+                  {isActive && (
+                    <span className="inline-flex items-center gap-1 ml-2 px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider"
+                          style={{
+                            color: 'var(--accent-gold)',
+                            background: 'var(--accent-gold-light)',
+                          }}>
+                      <span className="relative flex h-1.5 w-1.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                              style={{ backgroundColor: 'var(--accent-gold)' }} />
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5"
+                              style={{ backgroundColor: 'var(--accent-gold)' }} />
+                      </span>
+                      LIVE
+                    </span>
+                  )}
                 </h3>
                 {block.desc && (
                   <p
