@@ -1,57 +1,80 @@
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
-import { getApiKey } from './keyring';
 
+const CONFIG_PATH = resolve(process.cwd(), '.llm-config.json');
 const DEFAULTS = {
   model: 'Qwen3.6-35B-A3B-MLX-8bit',
   endpoint: 'http://localhost:8080/v1',
 };
 
-let cachedConfig: { model: string; endpoint: string } | null = null;
+let cachedConfig: { model: string; endpoint: string; apiKeyEnabled: boolean } | null = null;
 
-/**
- * Get a fresh LLM provider instance, reading settings from keyring + config file.
- * Each call creates a new provider with the current API key, so key changes
- * are picked up on the next API request.
- */
 export async function getModelInstance() {
-  // Load config (cached per-request for performance)
   if (!cachedConfig) {
     try {
-      const raw = readFileSync(resolve(process.cwd(), '.llm-config.json'), 'utf-8');
+      const raw = readFileSync(CONFIG_PATH, 'utf-8');
       const config = JSON.parse(raw);
       cachedConfig = {
         model: config.model || DEFAULTS.model,
         endpoint: config.endpoint || DEFAULTS.endpoint,
+        apiKeyEnabled: config.apiKeyEnabled === true,
       };
     } catch {
-      cachedConfig = { model: DEFAULTS.model, endpoint: DEFAULTS.endpoint };
+      cachedConfig = { model: DEFAULTS.model, endpoint: DEFAULTS.endpoint, apiKeyEnabled: false };
     }
   }
 
-  // Get API key: env var → keychain → error
-  const apiKey = process.env.LLM_API_KEY || (await getApiKey());
+  // If API key is not enabled, use a harmless placeholder
+  if (!cachedConfig.apiKeyEnabled) {
+    const provider = createOpenAICompatible({
+      name: 'local-llm',
+      baseURL: cachedConfig.endpoint,
+      apiKey: 'not-needed',
+    });
+    return provider(cachedConfig.model);
+  }
+
+  // API key enabled: read from env var, fall back to keychain
+  let apiKey = process.env.LLM_API_KEY;
+  if (!apiKey) {
+    try {
+      const { getPassword } = await import('keytar');
+      apiKey = (await getPassword('time-block', 'llm-api-key')) || undefined;
+    } catch {
+      // keytar not available (CI, etc.)
+    }
+  }
   if (!apiKey) {
     throw new Error(
-      'No API key found. Set LLM_API_KEY env var, or configure via the Settings dialog in the app.'
+      'No API key found. Set LLM_API_KEY env var, or add a key in the Settings dialog.'
     );
   }
 
-  // Wrap fetch with a 15s timeout so LLM requests fail fast instead of hanging
+  // Wrap fetch with a timeout so LLM requests fail fast instead of hanging
   const timeoutFetch = (url: string | URL | Request, options: RequestInit = {}) => {
     const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), 15000);
-    const fetchPromise = fetch(url, {
-      ...options,
-      signal: options.signal
-        ? AbortSignal.any([options.signal, controller.signal])
-        : controller.signal,
-    });
+    const id = setTimeout(() => controller.abort(), 180000);
+    
+    const fetchUrl = typeof url === 'string' || url instanceof URL ? url : url.url;
+    const fetchOptions = { ...options };
+    
+    if (options.signal) {
+      // Combine signals: timeout OR inbound abort both trigger
+      if (typeof (AbortSignal as any).any === 'function') {
+        fetchOptions.signal = AbortSignal.any([options.signal, controller.signal]);
+      } else {
+        // Fallback: respect inbound signal, timeout via separate mechanism
+        fetchOptions.signal = options.signal;
+      }
+    } else {
+      fetchOptions.signal = controller.signal;
+    }
+    
+    const fetchPromise = fetch(fetchUrl, fetchOptions);
     return fetchPromise.finally(() => clearTimeout(id));
   };
 
-  // Create provider with timeout-aware fetch
   const provider = createOpenAICompatible({
     name: 'local-llm',
     baseURL: cachedConfig.endpoint,
@@ -62,7 +85,4 @@ export async function getModelInstance() {
   return provider(cachedConfig.model);
 }
 
-/** Clear cached config between requests to avoid stale data */
-export function clearConfigCache() {
-  cachedConfig = null;
-}
+export function clearConfigCache() { cachedConfig = null; }

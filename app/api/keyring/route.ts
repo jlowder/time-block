@@ -1,25 +1,48 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPassword, setPassword, deletePassword } from 'keytar';
 import { maskKey } from '@/lib/keyring';
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
 
-/**
- * GET /api/keyring
- * Returns masked API key or null.
- */
-export async function GET() {
+const CONFIG_PATH = resolve(process.cwd(), '.llm-config.json');
+
+function getConfig(): { apiKeyEnabled?: boolean } {
   try {
-    const password = await getPassword('time-block', 'llm-api-key');
-    return NextResponse.json({ apiKey: password ? maskKey(password) : null, hasKey: password !== null });
+    const raw = readFileSync(CONFIG_PATH, 'utf-8');
+    return JSON.parse(raw);
   } catch {
-    return NextResponse.json({ hasKey: false, apiKey: null });
+    return {};
   }
 }
 
-/**
- * POST /api/keyring
- * Accepts { key } to store, and optionally { endpoint, model } to update config.
- */
+export async function GET() {
+  const config = getConfig();
+  const apiKeyEnabled = config.apiKeyEnabled === true;
+
+  if (!apiKeyEnabled) {
+    return NextResponse.json({ hasKey: false, apiKey: null, apiKeyEnabled: false });
+  }
+
+  try {
+    const password = await getPassword('time-block', 'llm-api-key');
+    return NextResponse.json({
+      apiKey: password ? maskKey(password) : null,
+      hasKey: password !== null,
+      apiKeyEnabled: true,
+    });
+  } catch {
+    return NextResponse.json({ hasKey: false, apiKey: null, apiKeyEnabled: true });
+  }
+}
+
 export async function POST(req: NextRequest) {
+  const config = getConfig();
+  const apiKeyEnabled = config.apiKeyEnabled === true;
+
+  if (!apiKeyEnabled) {
+    return NextResponse.json({ error: 'API key is disabled' }, { status: 400 });
+  }
+
   try {
     const body = await req.json();
     const { key, endpoint, model } = body as { key?: string; endpoint?: string; model?: string };
@@ -30,16 +53,11 @@ export async function POST(req: NextRequest) {
 
     await setPassword('time-block', 'llm-api-key', key);
 
-    // Also update .llm-config.json if endpoint or model provided
     if (endpoint || model) {
       const { writeFileSync } = await import('fs');
-      const { resolve } = await import('path');
       const configPath = resolve(process.cwd(), '.llm-config.json');
-      const config = {
-        endpoint: endpoint || 'http://localhost:8080/v1',
-        model: model || 'Qwen3.6-35B-A3B-MLX-8bit',
-      };
-      writeFileSync(configPath, JSON.stringify(config, null, 2));
+      const cfg = { endpoint: endpoint || 'http://localhost:8080/v1', model: model || 'Qwen3.6-35B-A3B-MLX-8bit', apiKeyEnabled: true };
+      writeFileSync(configPath, JSON.stringify(cfg, null, 2));
     }
 
     return NextResponse.json({ success: true });
@@ -48,11 +66,14 @@ export async function POST(req: NextRequest) {
   }
 }
 
-/**
- * DELETE /api/keyring
- * Removes the stored API key.
- */
 export async function DELETE() {
+  const config = getConfig();
+  const apiKeyEnabled = config.apiKeyEnabled === true;
+
+  if (!apiKeyEnabled) {
+    return NextResponse.json({ success: true });
+  }
+
   try {
     await deletePassword('time-block', 'llm-api-key');
     return NextResponse.json({ success: true });

@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 interface Settings {
   endpoint: string;
   model: string;
+  apiKeyEnabled: boolean;
   hasApiKey: boolean;
   apiKeyMasked: string | null;
 }
@@ -18,6 +19,7 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
   const [saving, setSaving] = useState(false);
   const [endpoint, setEndpoint] = useState('');
   const [model, setModel] = useState('');
+  const [apiKeyEnabled, setApiKeyEnabled] = useState(false);
   const [apiKey, setApiKey] = useState('');
   const [showKey, setShowKey] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,6 +38,7 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
       setSettings(data);
       setEndpoint(data.endpoint);
       setModel(data.model);
+      setApiKeyEnabled(data.apiKeyEnabled ?? false);
       setApiKey('');
       setShowKey(false);
     } catch (err) {
@@ -48,11 +51,12 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
   // Track whether any field has changed from saved values
   const hasChanges = useMemo(() => {
     if (!settings) return false;
+    const keyEnabledChanged = apiKeyEnabled !== settings.apiKeyEnabled;
     const keyChanged = apiKey.trim() !== '';
     const endpointChanged = endpoint !== settings.endpoint;
     const modelChanged = model !== settings.model;
-    return keyChanged || endpointChanged || modelChanged;
-  }, [settings, apiKey, endpoint, model]);
+    return keyEnabledChanged || keyChanged || endpointChanged || modelChanged;
+  }, [settings, apiKeyEnabled, apiKey, endpoint, model]);
 
   useEffect(() => {
     if (isOpen) loadSettings();
@@ -64,16 +68,16 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
     setError(null);
     setSuccess(null);
     try {
-      // Save endpoint and model
+      // Save endpoint, model, and apiKeyEnabled
       const settingsRes = await fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ endpoint, model }),
+        body: JSON.stringify({ endpoint, model, apiKeyEnabled }),
       });
       if (!settingsRes.ok) throw new Error('Failed to save settings');
 
-      // Save API key if provided
-      if (apiKey.trim()) {
+      // Save API key if provided and key is enabled
+      if (apiKey.trim() && apiKeyEnabled) {
         const keyRes = await fetch('/api/keyring', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -158,7 +162,25 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
             </div>
           ) : (
             <>
-              {/* API Key */}
+              {/* API Key Toggle */}
+              <div className="flex items-center gap-3">
+                <label
+                  className="flex items-center gap-2 cursor-pointer"
+                  style={{ color: 'var(--text-secondary)' }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={apiKeyEnabled}
+                    onChange={(e) => setApiKeyEnabled(e.target.checked)}
+                    className="w-4 h-4 rounded accent-indigo-500"
+                    style={{ accentColor: 'var(--accent-indigo)' }}
+                  />
+                  <span className="text-sm font-medium">API key required</span>
+                </label>
+              </div>
+
+              {/* API Key Input (conditional) */}
+              {apiKeyEnabled && (
               <div>
                 <label
                   className="block text-sm font-medium mb-1.5"
@@ -223,6 +245,13 @@ export function SettingsDialog({ isOpen, onClose }: SettingsDialogProps) {
                   Type a new key to replace the stored one. Leave blank to keep the current key.
                 </p>
               </div>
+              )}
+
+              {!apiKeyEnabled && (
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                  The app will use a placeholder API key. Some LLM features may not work.
+                </p>
+              )}
 
               {/* Endpoint */}
               <div>
