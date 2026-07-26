@@ -91,8 +91,8 @@ Formatted as: `Xh Ymin`, `Xh`, or `Ymin`.
   - **Current time** (12-hour format with AM/PM)
 
 **Status Messages**
-- Before schedule start (04:00): "Day hasn't started yet — ☕ relax"
-- After schedule end (12:25+): "Morning block complete! 🎉"
+- Before schedule start: "Schedule hasn't started yet — ☕ relax"
+- After schedule end: "Activity block complete! 🎉"
 - Between activities: "Between activities"
 
 ### 9. Audio Chimes
@@ -102,7 +102,7 @@ Formatted as: `Xh Ymin`, `Xh`, or `Ymin`.
 - 4-note ascending chime sequence (C5, E5, G5, C6) followed by a bell tone.
 
 **Controls**
-- Toggle button in bottom-right corner.
+- Toggle button controls audio playback.
 - State persisted in `soundEnabled` flag.
 - Audio context created on first user interaction (browser policy compliance).
 
@@ -137,7 +137,7 @@ Formatted as: `Xh Ymin`, `Xh`, or `Ymin`.
 - Required fields:
   - `endpoint`: URL of OpenAI-compatible API endpoint (e.g., `https://api.openai.com/v1/chat/completions`)
   - `model`: Model name to use (e.g., `gpt-4o-mini`)
-- Optional fields:
+- Keyring fields:
   - `apiKey`: API key for authentication (if required by endpoint)
 
 **Config File Example:**
