@@ -26,10 +26,12 @@ export function ChatInterface({ isVisible, scheduleData, onScheduleChange }: Cha
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Focus input on mount
+  // Focus input on mount (without scrolling the page)
   useEffect(() => {
     if (isVisible) {
+      const savedScrollY = window.scrollY;
       textareaRef.current?.focus();
+      window.scrollTo(0, savedScrollY);
     }
   }, [isVisible]);
 

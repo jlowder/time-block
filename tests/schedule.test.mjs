@@ -545,7 +545,7 @@ assert(lateH === 0 && lateM === 20, `got ${lateH}:${String(lateM).padStart(2, '0
         const oddDurations = [7, 13, 17, 23, 37];
         const newDuration = oddDurations[Math.floor(Math.random() * oddDurations.length)];
 
-        const modifyRes = await chat(`Change the task called "${targetSlot.title}" to be ${newDuration} minutes long`, scheduleBefore);
+        const modifyRes = await chat(`Change the task called "${targetSlot.title}" to be ${newDuration} minutes long`, scheduleBefore, 90000);
         if (!modifyRes.schedule) throw new Error('No schedule in response');
 
         const modifiedSlot = modifyRes.schedule.slots.find(s => s.id === targetSlot.id);

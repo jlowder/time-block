@@ -291,28 +291,40 @@ export default function HomePage() {
           onToggleSound={handleToggleSound}
           playChime={playChime}
           onOpenSettings={() => setShowSettings(true)}
+          isDecorating={isDecorating}
         />
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 w-full max-w-[720px] mx-auto px-4 flex flex-col">
-        {/* Schedule View */}
-        <div className="flex-1">
-          <ScheduleView
-            slots={scheduleData.slots}
-            activeSlotIndex={activeSlotIndex}
-            isEditMode={isEditMode}
-            isDecorating={isDecorating}
-            onSlotDragStart={onSlotDragStart}
-            onSlotDragOver={onSlotDragOver}
-            onSlotDragEnd={onSlotDragEnd}
-          />
-        </div>
-
-        {/* Chat Interface (edit mode only) */}
-        {isEditMode && (
-          <div className="mt-4">
-            <ChatInterface isVisible={isEditMode} scheduleData={scheduleData} onScheduleChange={onScheduleChange} />
+      <main className="flex-1 w-full max-w-[1200px] mx-auto px-4 flex flex-col">
+        {isEditMode ? (
+          <div className="flex-1 flex flex-col-reverse md:flex-row gap-4 min-h-0">
+            <div className="flex-1 min-w-0 min-h-0">
+              <ScheduleView
+                slots={scheduleData.slots}
+                activeSlotIndex={activeSlotIndex}
+                isEditMode={isEditMode}
+                isDecorating={isDecorating}
+                onSlotDragStart={onSlotDragStart}
+                onSlotDragOver={onSlotDragOver}
+                onSlotDragEnd={onSlotDragEnd}
+              />
+            </div>
+            <div className="w-full md:w-[420px] flex-shrink-0 flex flex-col max-h-[50vh] md:h-full">
+              <ChatInterface isVisible={isEditMode} scheduleData={scheduleData} onScheduleChange={onScheduleChange} />
+            </div>
+          </div>
+        ) : (
+          <div className="flex-1">
+            <ScheduleView
+              slots={scheduleData.slots}
+              activeSlotIndex={activeSlotIndex}
+              isEditMode={isEditMode}
+              isDecorating={isDecorating}
+              onSlotDragStart={onSlotDragStart}
+              onSlotDragOver={onSlotDragOver}
+              onSlotDragEnd={onSlotDragEnd}
+            />
           </div>
         )}
       </main>
