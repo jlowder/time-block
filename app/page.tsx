@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { loadSchedule, saveSchedule, exportSchedule, getDefaultSchedule, playChime } from '@/lib/schedule';
+import { publishSchedule } from '@/lib/publish';
 import { ScheduleView } from '@/components/ScheduleView';
 import { ChatInterface } from '@/components/ChatInterface';
 import { StatusBar } from '@/components/StatusBar';
@@ -257,6 +258,10 @@ export default function HomePage() {
     exportSchedule(scheduleData);
   }, [scheduleData]);
 
+  const handleShare = useCallback(() => {
+    publishSchedule(scheduleData);
+  }, [scheduleData]);
+
   const handleImport = useCallback((content: string) => {
     try {
       const parsed = JSON.parse(content) as ScheduleData;
@@ -339,6 +344,7 @@ export default function HomePage() {
           onToggleMode={toggleEditMode}
           onExport={handleExport}
           onImport={handleImport}
+          onShare={handleShare}
           soundEnabled={soundEnabled}
           onToggleSound={handleToggleSound}
           playChime={playChime}
