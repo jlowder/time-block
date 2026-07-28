@@ -375,7 +375,7 @@ export default function HomePage() {
                     onSlotDragEnd={onSlotDragEnd}
                   />
                 </div>
-                <div className="w-full md:w-[420px] flex-shrink-0 flex flex-col max-h-[50vh] md:h-full">
+                <div className="w-full md:w-[420px] flex-shrink-0 flex flex-col max-h-[50vh] md:h-full sticky top-0">
                   <ChatInterface isVisible={isEditMode} scheduleData={scheduleData} onScheduleChange={onScheduleChange} />
                 </div>
               </div>
