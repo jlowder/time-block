@@ -670,10 +670,14 @@ function getActiveSlotIndex(slots) {
   var now = new Date();
   var currentMin = now.getHours() * 60 + now.getMinutes();
 
-  for (var i = slots.length - 1; i >= 0; i--) {
+  for (var i = 0; i < slots.length; i++) {
     var slot = slots[i];
     var slotStart = slot.startH * 60 + slot.startM;
-    if (currentMin >= slotStart) return i;
+    var slotEnd = slot.endH * 60 + slot.endM;
+
+    if (currentMin >= slotStart && currentMin < slotEnd) {
+      return i;
+    }
   }
   return -1;
 }

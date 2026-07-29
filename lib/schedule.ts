@@ -120,12 +120,16 @@ export function getActiveSlotIndex(slots: TimeBlock[]): number {
   const now = new Date();
   const currentMin = now.getHours() * 60 + now.getMinutes();
 
-  for (let i = slots.length - 1; i >= 0; i--) {
+  for (let i = 0; i < slots.length; i++) {
     const slot = slots[i];
-    const slotStart = slot.startH * 60 + slot.startM;
-    const slotEnd = slot.endH * 60 + slot.endM;
-    if (currentMin >= slotStart) return i;
+    const startMin = slot.startH * 60 + slot.startM;
+    const endMin = slot.endH * 60 + slot.endM;
+
+    if (currentMin >= startMin && currentMin < endMin) {
+      return i;
+    }
   }
+
   return -1;
 }
 
