@@ -45,13 +45,13 @@ Open [http://localhost:3000](http://localhost:3000).
 You can tell it what you want in natural language. If you "add" a task, it needs to know what time it should start. If you "append" a
 task, it always goes at the end. Otherwise you can insert tasks relative to other ones.
 
-o Delete all tasks
-o Add a 30 minute workout at 7am
-o Append a task called "Read Quantum Programming book" for 15 minutes
-o Insert a 5 minute break between all reading tasks
-o Delete all tasks that relate to eating
-o Change all breaks to be 4 minutes instead of 5
-o Insert a walk for 10 mins after Lunch
+- Delete all tasks
+- Add a 30 minute workout at 7am
+- Append a task called "Read Quantum Programming book" for 15 minutes
+- Insert a 5 minute break between all reading tasks
+- Delete all tasks that relate to eating
+- Change all breaks to be 4 minutes instead of 5
+- Insert a walk for 10 mins after Lunch
 
 ## License
 
