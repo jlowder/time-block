@@ -12,6 +12,8 @@ the tool to do that.
 
 Time Block lets you plan a sequence of time-blocked activities. You set start times, give each block a title, and the app keeps the rest flowing.
 
+![Time Block Interface](docs/screenshot.png)
+
 **Edit mode** is where you build. Add blocks through a chatbot interface - local LLMs work great - or drag cards to reorder them. Turn off edit mode and the LLM fills in icons, descriptions, and color themes for each block.
 
 **View mode** let the activities play out: the active block glows gold, past blocks fade. A status bar shows what you're doing now and how much time is left. An audio chime plays when you switch blocks.
