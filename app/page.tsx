@@ -66,6 +66,7 @@ export default function HomePage() {
   const lastActiveIndexRef = useRef<number | null>(null);
   const prevEditModeRef = useRef(isEditMode);
   const hasMountedRef = useRef(false);
+  const scheduleScrollRef = useRef<HTMLDivElement>(null);
 
   // Load schedule from localStorage on mount
   useEffect(() => {
@@ -114,6 +115,40 @@ export default function HomePage() {
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [isEditMode]);
+
+  // Auto-scroll to keep the Live task in view (view mode only)
+  useEffect(() => {
+    if (isEditMode) return;
+    if (activeSlotIndex < 0) return;
+
+    requestAnimationFrame(() => {
+      const container = scheduleScrollRef.current;
+      const activeCard = container?.querySelector(`[data-slot-index="${activeSlotIndex}"]`);
+      if (!container || !activeCard) return;
+
+      const containerRect = container.getBoundingClientRect();
+      const cardRect = activeCard.getBoundingClientRect();
+
+      // Element is already fully visible — no scroll needed
+      if (
+        cardRect.top >= containerRect.top &&
+        cardRect.bottom <= containerRect.bottom
+      ) {
+        return;
+      }
+
+      const centerOffset = cardRect.top - containerRect.top + container.scrollTop;
+      const targetScroll = centerOffset - containerRect.height / 2;
+      const maxScroll = container.scrollHeight - container.clientHeight;
+      const clampedScroll = Math.max(0, Math.min(targetScroll, maxScroll));
+
+      container.scrollTo({
+        left: 0,
+        top: clampedScroll,
+        behavior: 'smooth',
+      });
+    });
+  }, [activeSlotIndex, isEditMode]);
 
   // Audio chime when active slot changes
   useEffect(() => {
@@ -355,7 +390,7 @@ export default function HomePage() {
 
       {/* Main Content — scrollable area */}
       <main className="flex-1 w-full max-w-[1200px] mx-auto pr-4 flex flex-col min-h-0 overflow-hidden">
-        <div className="flex flex-1 gap-10 min-h-0 overflow-y-auto pl-[20px]">
+        <div className="flex flex-1 gap-10 min-h-0 overflow-y-auto pl-[20px]" ref={scheduleScrollRef}>
           {/* Legend column — centered in left margin area */}
           <div className="flex flex-col w-36 flex-shrink-0 sticky top-0">
             <ThemeLegend />

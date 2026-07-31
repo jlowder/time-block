@@ -89,7 +89,7 @@ function buildCardsHTML(slots: TimeBlock[]): string {
                 <span class="time-range">${formatTime24(slot.startH, slot.startM)}\u2013${formatTime24(slot.endH, slot.endM)}</span>
                 ${slot.badge ? `<span class="duration-badge" style="background: ${themeBadgeBg}; color: ${themeBadgeText}">${escapeHtml(badge)}</span>` : ''}
               </div>
-              <h3 class="card-title">${escapeHtml(slot.title)}</h3>
+              <h3 class="card-title"><span class="title-text">${escapeHtml(slot.title)}</span><span class="live-badge" style="display:none"><span class="live-dot"></span>LIVE</span></h3>
               ${slot.desc ? `<p class="card-desc">${escapeHtml(slot.desc)}</p>` : ''}
             </div>
           </div>
@@ -610,6 +610,7 @@ var soundEnabled = true;
 
   renderSchedule();
   updateActiveSlot();
+  scrollToActiveSlot();
   startTimers();
   buildToolbar();
   updateStatusBar(getActiveSlotIndex(SCHEDULE_DATA.slots || []));
@@ -619,6 +620,8 @@ function renderSchedule() {
   var slots = SCHEDULE_DATA.slots || [];
   var scheduleEl = document.getElementById('schedule');
   if (!slots.length) return;
+
+  var activeIdx = getActiveSlotIndex(slots);
 
   var items = scheduleEl.querySelectorAll('.schedule-item');
   items.forEach(function(item, i) {
@@ -654,8 +657,11 @@ function renderSchedule() {
       badgeEl.style.color = themeBadgeText;
     }
 
-    var title = item.querySelector('.card-title');
-    if (title) { title.textContent = slot.title; }
+    var titleText = item.querySelector('.title-text');
+    if (titleText) { titleText.textContent = slot.title; }
+
+    var badge = item.querySelector('.live-badge');
+    if (badge) { badge.style.display = i === activeIdx ? '' : 'none'; }
 
     var desc = item.querySelector('.card-desc');
     if (desc) {
@@ -700,6 +706,7 @@ function updateActiveSlot() {
 
   if (lastActiveIndex !== null && lastActiveIndex !== index) {
     if (soundEnabled) { playChime(); }
+    scrollToActiveSlot();
   }
   lastActiveIndex = index;
 
@@ -897,6 +904,28 @@ function startTimers() {
   setInterval(function() { updateStatusBar(lastActiveIndex); }, 1000);
   document.addEventListener('visibilitychange', function() {
     if (document.visibilityState === 'visible') { updateActiveSlot(); }
+  });
+}
+
+function scrollToActiveSlot() {
+  var activeEl = document.querySelector('.schedule-item.active');
+  if (!activeEl) return;
+
+  // Mobile viewport changes (address bar) can invalidate scroll positions.
+  // Use scrollIntoView which re-evaluates at scroll time, and add a small
+  // delay so the mobile browser has settled after layout / visibility change.
+  setTimeout(function() {
+    activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 50);
+}
+
+// Re-scroll when the mobile viewport resizes (address bar show/hide)
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', function() {
+    // Only re-scroll if there's an active slot and user isn't scrolling
+    if (document.querySelector('.schedule-item.active')) {
+      setTimeout(scrollToActiveSlot, 100);
+    }
   });
 }
 

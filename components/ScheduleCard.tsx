@@ -83,6 +83,7 @@ export function ScheduleCard({
 
   return (
     <div
+      data-slot-index={index}
       className={`relative flex items-start gap-4 py-3 ${isEditMode ? 'cursor-grab active:cursor-grabbing' : ''}`}
       style={{ opacity }}
       draggable={isEditMode}
