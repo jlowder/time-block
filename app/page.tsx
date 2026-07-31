@@ -55,9 +55,7 @@ export default function HomePage() {
   const [activeSlotIndex, setActiveSlotIndex] = useState(-1);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [isDecorating, setIsDecorating] = useState(false);
-  const [soundEnabled, setSoundEnabled] = useState(() => {
-    try { return localStorage.getItem('soundEnabled') !== 'false'; } catch { return true; }
-  });
+  const [soundEnabled, setSoundEnabled] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
   const [calcTick, setCalcTick] = useState(0);
 
@@ -70,8 +68,15 @@ export default function HomePage() {
 
   // Load schedule from localStorage on mount
   useEffect(() => {
+    hasMountedRef.current = true;
     const stored = loadSchedule();
     setScheduleData(stored);
+    try {
+      const storedSound = localStorage.getItem('soundEnabled');
+      if (storedSound !== null) {
+        setSoundEnabled(storedSound !== 'false');
+      }
+    } catch {}
   }, []);
 
   // Persist soundEnabled
@@ -369,7 +374,7 @@ export default function HomePage() {
         <h1 className="text-[42px] leading-tight font-bold tracking-tight text-[var(--text-primary)]">
           Time Block
         </h1>
-        <p className="text-sm text-[var(--text-muted)] mt-1">Your daily schedule</p>
+        <p className="text-sm text-[var(--text-muted)] mt-1">Activity Schedule</p>
       </header>
 
       {/* Toolbar */}
