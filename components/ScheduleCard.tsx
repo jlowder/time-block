@@ -9,6 +9,7 @@ interface ScheduleCardProps {
   onStartDrag: (index: number) => void;
   onDragOver: (index: number) => void;
   onDragEnd: () => void;
+  onDelete?: () => void;
 }
 
 const THEME_COLORS: Record<NonNullable<TimeBlock['theme']>, string> = {
@@ -76,6 +77,7 @@ export function ScheduleCard({
   onStartDrag,
   onDragOver,
   onDragEnd,
+  onDelete,
 }: ScheduleCardProps) {
   const themeColor = getThemeColor(block.theme);
   const isPast = !isActive && index < activeSlotIndex;
@@ -125,7 +127,7 @@ export function ScheduleCard({
 
       {/* Card */}
       <div
-        className="flex-1 rounded-lg schedule-card"
+        className="relative flex-1 rounded-lg schedule-card"
         style={{
           background: isActive ? 'var(--accent-gold-light)' : 'var(--bg-surface)',
           borderLeft: `4px solid ${isActive ? 'var(--accent-gold)' : themeColor}`,
@@ -217,6 +219,33 @@ export function ScheduleCard({
               </div>
             </div>
           </div>
+
+          {/* Delete button (edit mode only) */}
+          {isEditMode && onDelete && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete();
+              }}
+              className="absolute top-2 right-2 p-1 rounded-full
+                         hover:bg-[var(--bg-surface-hover)] active:scale-90 transition-all duration-150
+                         group/delete"
+              title="Delete task"
+              style={{ opacity: 0.3 }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.opacity = '1';
+                (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-primary)';
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.opacity = '0.3';
+                (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-muted)';
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style={{ color: 'var(--text-muted)' }}>
+                <path d="M3.7 2.35a1 1 0 0 1 1.4-1.4h5.8a1 1 0 0 1 1.4 1.4L14.4 6l1.3 1.3a1 1 0 1 1-1.4 1.4L13 7.4l-1.3 1.3a1 1 0 1 1-1.4-1.4L11.6 6 3.7 2.35z" />
+              </svg>
+            </button>
+          )}
         </div>
       </div>
     </div>

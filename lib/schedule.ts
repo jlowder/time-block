@@ -176,6 +176,18 @@ export function moveSlot(slots: TimeBlock[], fromIndex: number, toIndex: number)
   return recalculateTimes(copy);
 }
 
+/** Remove a slot by ID, recalculate times, and save. Returns the updated slots or null if not found. */
+export function deleteSlot(taskId: string): TimeBlock[] | null {
+  const currentSchedule = loadSchedule();
+  const remaining = currentSchedule.slots.filter((s) => s.id !== taskId);
+  if (remaining.length === currentSchedule.slots.length) {
+    return null;
+  }
+  const recalculated = recalculateTimes(remaining);
+  saveSchedule({ slots: recalculated });
+  return recalculated;
+}
+
 // ── Audio chime ────────────────────────────────────────────────────────────────
 
 /** Play a short ascending chime (C5-E5-G5-C6 + A5 bell). Safe to call anywhere. */

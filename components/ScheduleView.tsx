@@ -9,6 +9,7 @@ interface ScheduleViewProps {
   onSlotDragStart: (index: number) => void;
   onSlotDragOver: (index: number) => void;
   onSlotDragEnd: () => void;
+  onDeleteSlot?: (taskId: string) => void;
 }
 
 export function ScheduleView({
@@ -19,6 +20,7 @@ export function ScheduleView({
   onSlotDragStart,
   onSlotDragOver,
   onSlotDragEnd,
+  onDeleteSlot,
 }: ScheduleViewProps) {
   if (!slots || slots.length === 0) {
     return (
@@ -76,6 +78,7 @@ export function ScheduleView({
           onStartDrag={onSlotDragStart}
           onDragOver={onSlotDragOver}
           onDragEnd={onSlotDragEnd}
+          onDelete={isEditMode && onDeleteSlot ? () => onDeleteSlot(slot.id) : undefined}
         />
       ))}
     </div>

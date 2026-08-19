@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getModelInstance, clearConfigCache } from '@/lib/llm';
 import * as schedule from '@/lib/schedule';
-import { generateTaskId } from '@/lib/schedule';
+import { generateTaskId, deleteSlot } from '@/lib/schedule';
 import { getApiKey } from '@/lib/keyring';
 import type { ScheduleData, TimeBlock, ToolOutput } from '@/lib/types';
 
@@ -110,17 +110,10 @@ const deleteTaskTool = tool({
     taskId: z.string().describe("The ID of the task to delete (e.g., 'slot-1')"),
   }),
   execute: async ({ taskId }) => {
-    const currentSchedule = schedule.loadSchedule();
-    const remaining = currentSchedule.slots.filter((s) => s.id !== taskId);
-    if (remaining.length === currentSchedule.slots.length) {
+    const updated = deleteSlot(taskId);
+    if (!updated) {
       return { success: false, message: `Task "${taskId}" not found` };
     }
-    const recalculated = schedule.recalculateTimes(remaining);
-    const updatedSchedule: ScheduleData = {
-      ...currentSchedule,
-      slots: recalculated,
-    };
-    schedule.saveSchedule(updatedSchedule);
     return { success: true, message: `Deleted task "${taskId}"` };
   },
 });
