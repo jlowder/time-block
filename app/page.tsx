@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { loadSchedule, saveSchedule, exportSchedule, getDefaultSchedule, playChime } from '@/lib/schedule';
+import { loadSchedule, saveSchedule, deleteSlot, exportSchedule, getDefaultSchedule, playChime } from '@/lib/schedule';
 import { publishSchedule } from '@/lib/publish';
 import { ScheduleView } from '@/components/ScheduleView';
 import { ChatInterface } from '@/components/ChatInterface';
@@ -333,6 +333,13 @@ export default function HomePage() {
     saveSchedule(data);
   }, []);
 
+  const handleDeleteSlot = useCallback((taskId: string) => {
+    const updated = deleteSlot(taskId);
+    if (updated !== null) {
+      setScheduleData((prev) => ({ ...prev, slots: updated }));
+    }
+  }, []);
+
   // Decorate effect
   useEffect(() => {
     if (prevEditModeRef.current && !isEditMode) {
@@ -413,6 +420,7 @@ export default function HomePage() {
                     onSlotDragStart={onSlotDragStart}
                     onSlotDragOver={onSlotDragOver}
                     onSlotDragEnd={onSlotDragEnd}
+                    onDeleteSlot={handleDeleteSlot}
                   />
                 </div>
                 <div className="w-full md:w-[420px] flex-shrink-0 flex flex-col max-h-[50vh] md:h-full sticky top-0">
@@ -429,6 +437,7 @@ export default function HomePage() {
                   onSlotDragStart={onSlotDragStart}
                   onSlotDragOver={onSlotDragOver}
                   onSlotDragEnd={onSlotDragEnd}
+                  onDeleteSlot={handleDeleteSlot}
                 />
               </div>
             )}
